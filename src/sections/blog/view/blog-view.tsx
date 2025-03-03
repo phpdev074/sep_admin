@@ -8,22 +8,21 @@ const editableSections = {
   terms: "Terms and Conditions",
   privacy: "Privacy Policy"
 };
+const initialContent = {
+  faq: "Here are some frequently asked questions...",
+  terms: "These are the terms and conditions of our service...",
+  privacy: "This is the privacy policy of our website..."
+};
+type Section = keyof typeof initialContent;
 
 export function SettingView() {
-  // Initial content for each section (you can replace this with real data from an API)
-  const initialContent = {
-    faq: "Here are some frequently asked questions...",
-    terms: "These are the terms and conditions of our service...",
-    privacy: "This is the privacy policy of our website..."
-  };
-
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentSection, setCurrentSection] = useState<string | null>(null);
-  const [sectionContent, setSectionContent] = useState<string>('');
+  const [currentSection, setCurrentSection] = useState<Section | undefined>(undefined);
+  const [sectionContent, setSectionContent] = useState<string>("");
 
-  const handleClickOpenDialog = (section: string) => {
+  const handleClickOpenDialog = (section: Section) => {
     setCurrentSection(section);
-    setSectionContent(initialContent[section]); // Set the content of the selected section
+    setSectionContent(initialContent[section]);
     setOpenDialog(true);
   };
 
@@ -63,7 +62,7 @@ export function SettingView() {
                 backgroundColor: '#e0e0e0',
               },
             }}
-            onClick={() => handleClickOpenDialog(key)}
+            onClick={() => handleClickOpenDialog(key as Section)}
           >
             <Typography variant="h6">{value}</Typography>
           </Box>
@@ -76,7 +75,7 @@ export function SettingView() {
         <DialogContent>
           <TextField
             fullWidth
-            label={`${editableSections[currentSection || '']} Content`}
+            label={`${editableSections[currentSection ?? 'faq'] || 'Unknown'} Content`}
             multiline
             rows={8}  // Increased height of TextField
             value={sectionContent}
