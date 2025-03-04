@@ -1,19 +1,31 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Unstable_Grid2';
 import Pagination from '@mui/material/Pagination';
 import Typography from '@mui/material/Typography';
 import { api } from 'src/api/url';
-import { _products } from 'src/_mock';
+import { _products, _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { useQuery } from '@tanstack/react-query';
-import { ProductItem } from '../product-item';
-import { ProductSort } from '../product-sort';
-import { CartIcon } from '../product-cart-widget';
-import { ProductFilters } from '../product-filters';
+// import { ProductItem } from '../product-item';
+// import { ProductSort } from '../product-sort';
+// import { CartIcon } from '../product-cart-widget';
+// import { ProductFilters } from '../product-filters';
 
-import type { FiltersProps } from '../product-filters';
+// import type { FiltersProps } from '../product-filters';
+import { Card, Table, TablePagination } from '@mui/material';
+import { Scrollbar } from 'src/components/scrollbar';
+import TableContainer from '@mui/material/TableContainer';
+import { UserTableHead } from 'src/sections/blockUser/user-table-head';
+import TableBody from '@mui/material/TableBody';
+// import { TableBody } from '@mui/material';
+import { UserTableRow } from 'src/sections/user/user-table-row';
+import { TableEmptyRows } from 'src/sections/user/table-empty-rows';
+import { emptyRows } from 'src/sections/user/utils';
+import { TableNoData } from 'src/sections/blockUser/table-no-data';
+import { applyFilter, getComparator } from 'src/sections/blockUser/utils';
+import { ProductTableRow } from '../product-table-row';
 
 // ----------------------------------------------------------------------
 
@@ -76,22 +88,40 @@ export function ProductsView() {
 
 
   const [userData, setUserData] = useState<ProductItemProps[]>([]);
+  const [filterName, setFilterName] = useState('');
 
   // console.log("userData",userData)
+  // const fetchUsers = async () => {
+  //   try {
+  //     const response = await api.get('/api/product'); // Adjust API endpoint as needed
+
+  //     setUserData(response?.data?.data?.data)
+  //     // return response.data;
+  //     console.log("@@@@@",response?.data?.data?.data)
+  //   } catch (error) {
+  //    console.log(error) 
+  //   }
+  // }
+const table = useTable();
+
   const fetchUsers = async () => {
-    const response = await api.get('/api/product'); // Adjust API endpoint as needed
+    const response = await api.get('/api/product'); 
     setUserData(response?.data?.data?.data)
-    // return response.data;
     console.log("@@@@@",response?.data?.data?.data)
   }
+
+  // useEffect(()=>{
+  //   fetchUsers()
+  // },[])
+
     const { data: getAllPost, error, isLoading } = useQuery({
       queryKey: ['api/product'],
       queryFn: fetchUsers,  
-      staleTime: 60000, // Cache for 60 seconds
+      staleTime: 60000, 
     });
 
 
-  const [filters, setFilters] = useState<FiltersProps>(defaultFilters);
+  // const [filters, setFilters] = useState<FiltersProps>(defaultFilters);
 
   const handleOpenFilter = useCallback(() => {
     setOpenFilter(true);
@@ -105,72 +135,162 @@ export function ProductsView() {
     setSortBy(newSort);
   }, []);
 
-  const handleSetFilters = useCallback((updateState: Partial<FiltersProps>) => {
-    setFilters((prevValue) => ({ ...prevValue, ...updateState }));
-  }, []);
+  // const handleSetFilters = useCallback((updateState: Partial<FiltersProps>) => {
+  //   setFilters((prevValue) => ({ ...prevValue, ...updateState }));
+  // }, []);
 
-  const canReset = Object.keys(filters).some(
-    (key) => filters[key as keyof FiltersProps] !== defaultFilters[key as keyof FiltersProps]
-  );
+  // const canReset = Object.keys(filters).some(
+  //   (key) => filters[key as keyof FiltersProps] !== defaultFilters[key as keyof FiltersProps]
+  // );
 
   if (isLoading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography>Error loading products</Typography>;
+  // if (error) return <Typography>Error loading products</Typography>;
+
+  //  const dataFiltered: UserProps[] = applyFilter({
+  //     inputData: userData,
+  //     comparator: getComparator(table.order, table.orderBy),
+  //     filterName,
+  //   });
+
+  
+  const notFound =!!filterName;
 
   return (
     <DashboardContent>
       <Typography variant="h4" sx={{ mb: 5 }}>
         Products
       </Typography>
+      <Card>
+        <Scrollbar>
+          <TableContainer sx={{ overflow: 'unset' }}>
+            <Table sx={{ minWidth: 800 }}>
+              <UserTableHead
+                order={table.order}
+                orderBy={table.orderBy}
+                rowCount={_users.length}
+                numSelected={table.selected.length}
+                onSort={table.onSort}
+                onSelectAllRows={(checked) =>
+                  table.onSelectAllRows(
+                    checked,
+                    _users.map((user) => user.id)
+                  )
+                }
+                headLabel={[
+                  { id: 'image', label: 'Image' },
+                  { id: 'title', label: 'Title' },
+                  { id: 'price', label: 'Price' },
+                  { id: 'description', label: 'Description', align: 'center' },
+                  // { id: 'status', label: 'Status' },
+                  { id: '' },
+                ]}
+              />
+              <TableBody>
+                {userData
+                  .slice(
+                    table.page * table.rowsPerPage,
+                    table.page * table.rowsPerPage + table.rowsPerPage
+                  )
+                  .map((row: any) => (
+                    <ProductTableRow
+                      key={row?._id}
+                      row={row}
+                      selected={table.selected.includes(row?._id)}
+                      onSelectRow={() => table.onSelectRow(row?._id)}
+                    />
+                  ))}
 
-      {/* <CartIcon totalItems={8} /> */}
+                <TableEmptyRows
+                  height={68}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                />
 
-      <Box
-        display="flex"
-        alignItems="center"
-        flexWrap="wrap-reverse"
-        justifyContent="flex-end"
-        sx={{ mb: 5 }}
-      >
-        <Box gap={1} display="flex" flexShrink={0} sx={{ my: 1 }}>
-          {/* <ProductFilters
-            canReset={canReset}
-            filters={filters}
-            onSetFilters={handleSetFilters}
-            openFilter={openFilter}
-            onOpenFilter={handleOpenFilter}
-            onCloseFilter={handleCloseFilter}
-            onResetFilter={() => setFilters(defaultFilters)}
-            options={{
-              genders: GENDER_OPTIONS,
-              categories: CATEGORY_OPTIONS,
-              ratings: RATING_OPTIONS,
-              price: PRICE_OPTIONS,
-              colors: COLOR_OPTIONS,
-            }}
-          /> */}
+                {notFound && <TableNoData searchQuery={filterName} />}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Scrollbar>
 
-          {/* <ProductSort
-            sortBy={sortBy}
-            onSort={handleSort}
-            options={[
-              { value: 'featured', label: 'Featured' },
-              { value: 'newest', label: 'Newest' },
-              { value: 'priceDesc', label: 'Price: High-Low' },
-              { value: 'priceAsc', label: 'Price: Low-High' },
-            ]}
-          /> */}
-        </Box>
-      </Box>
+        <TablePagination
+          component="div"
+          page={table.page}
+          count={_users.length}
+          rowsPerPage={table.rowsPerPage}
+          onPageChange={table.onChangePage}
+          rowsPerPageOptions={[5, 10, 25]}
+          onRowsPerPageChange={table.onChangeRowsPerPage}
+        />
+      </Card>
 
-      <Grid container spacing={3}>
-        {userData?.map((product) => (
-          <Grid key={product.id} xs={12} sm={6} md={3}>
-            <ProductItem product={product} />
-          </Grid>
-        ))}
-      </Grid>
 
-      <Pagination count={10} color="primary" sx={{ mt: 8, mx: 'auto' }} />
+
     </DashboardContent>
   );
+}
+
+
+export function useTable() {
+  const [page, setPage] = useState(0);
+  const [orderBy, setOrderBy] = useState('title');
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+
+  const onSort = useCallback(
+    (id: string) => {
+      const isAsc = orderBy === id && order === 'asc';
+      setOrder(isAsc ? 'desc' : 'asc');
+      setOrderBy(id);
+    },
+    [order, orderBy]
+  );
+
+  const onSelectAllRows = useCallback((checked: boolean, newSelecteds: string[]) => {
+    if (checked) {
+      setSelected(newSelecteds);
+      return;
+    }
+    setSelected([]);
+  }, []);
+
+  const onSelectRow = useCallback(
+    (inputValue: string) => {
+      const newSelected = selected.includes(inputValue)
+        ? selected.filter((value) => value !== inputValue)
+        : [...selected, inputValue];
+
+      setSelected(newSelected);
+    },
+    [selected]
+  );
+
+  const onResetPage = useCallback(() => {
+    setPage(0);
+  }, []);
+
+  const onChangePage = useCallback((event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const onChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      onResetPage();
+    },
+    [onResetPage]
+  );
+
+  return {
+    page,
+    order,
+    onSort,
+    orderBy,
+    selected,
+    rowsPerPage,
+    onSelectRow,
+    onResetPage,
+    onChangePage,
+    onSelectAllRows,
+    onChangeRowsPerPage,
+  };
 }

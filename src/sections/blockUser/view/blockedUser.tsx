@@ -27,54 +27,20 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 import type { UserProps } from '../user-table-row';
 
 
-
-// interface File {
-//   file: string;
-//   type: string;
-//   _id: string;
-// }
-
-// interface Post {
-//   _id: string;
-//   userId: string;
-//   categoryId: string;
-//   content: string;
-//   files: File[];
-//   fileType: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   __v: number;
-//   options: any[];
-//   votes: any[];
-//   location: {
-//     type: string;
-//     coordinates: [number, number];
-//   };
-// }
-
-// type Table = {
-//   selected: string[];
-//   onSelectRow: (id: string) => void;
-// };
-// ----------------------------------------------------------------------
-
 export function BlockView() {
   const [userData, setUserData] = useState([]);
   const fetchUsers = async () => {
     const response = await api.get('/admin/getBlockUsers'); // Adjust API endpoint as needed
     setUserData(response?.data?.data?.totalBlockUsers)
-    // return response.data;
-    // console.log(response?.data?.data)
   }
-    const { data: getBlockUsers, error, isLoading } = useQuery({
-      queryKey: ['admin/getBlockUsers'],
-      queryFn: fetchUsers,  
-      staleTime: 60000, // Cache for 60 seconds
-    });
+  const { data: getBlockUsers, error, isLoading } = useQuery({
+    queryKey: ['admin/getBlockUsers'],
+    queryFn: fetchUsers,
+    staleTime: 60000,
+  });
   const table = useTable();
-    // console.log("=====>>>userData",userData)
   const [filterName, setFilterName] = useState('');
-if (isLoading) return (
+  if (isLoading) return (
     <Box
       display="flex"
       justifyContent="center"
@@ -85,11 +51,7 @@ if (isLoading) return (
     </Box>
   );
   const dataFiltered: UserProps[] = applyFilter({
-    // console.log("@@@",)
-// <<<<<<< Tabnine <<<<<<<
-    // inputData: _users,//-
-    inputData: userData,//+
-// >>>>>>> Tabnine >>>>>>>// {"conversationId":"d93ec7bf-3bb2-4650-9d97-bbb060635f5d","source":"instruct"}
+    inputData: userData,
     comparator: getComparator(table.order, table.orderBy),
     filterName,
   });
@@ -97,29 +59,7 @@ if (isLoading) return (
   const notFound = !dataFiltered.length && !!filterName;
   return (
     <DashboardContent>
-      {/* <Box display="flex" alignItems="center" mb={5}>
-        <Typography variant="h4" flexGrow={1}>
-          Users
-        </Typography>
-        <Button
-          variant="contained"
-          color="inherit"
-          startIcon={<Iconify icon="mingcute:add-line" />}
-        >
-          New user
-        </Button>
-      </Box> */}
-
       <Card>
-        {/* <UserTableToolbar
-          numSelected={table.selected.length}
-          filterName={filterName}
-          onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setFilterName(event.target.value);
-            table.onResetPage();
-          }}
-        /> */}
-
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
@@ -150,7 +90,7 @@ if (isLoading) return (
                     table.page * table.rowsPerPage,
                     table.page * table.rowsPerPage + table.rowsPerPage
                   )
-                  .map((row:any) => (
+                  .map((row: any) => (
                     <UserTableRow
                       key={row?._id}
                       row={row}
