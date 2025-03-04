@@ -123,17 +123,17 @@ const table = useTable();
 
   // const [filters, setFilters] = useState<FiltersProps>(defaultFilters);
 
-  const handleOpenFilter = useCallback(() => {
-    setOpenFilter(true);
-  }, []);
+  // const handleOpenFilter = useCallback(() => {
+  //   setOpenFilter(true);
+  // }, []);
 
-  const handleCloseFilter = useCallback(() => {
-    setOpenFilter(false);
-  }, []);
+  // const handleCloseFilter = useCallback(() => {
+  //   setOpenFilter(false);
+  // }, []);
 
-  const handleSort = useCallback((newSort: string) => {
-    setSortBy(newSort);
-  }, []);
+  // const handleSort = useCallback((newSort: string) => {
+  //   setSortBy(newSort);
+  // }, []);
 
   // const handleSetFilters = useCallback((updateState: Partial<FiltersProps>) => {
   //   setFilters((prevValue) => ({ ...prevValue, ...updateState }));

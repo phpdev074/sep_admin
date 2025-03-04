@@ -13,47 +13,47 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { toast } from 'react-toastify';
-import { deleteUser } from 'src/api/url';
+import { api, deleteUser } from 'src/api/url';
 // ----------------------------------------------------------------------
 
 
 interface Post {
-  _id: string;
-  userId: string;
-  categoryId: string;
-  postReport: string;
-  userReport: string;
-  content: string;
-  files: File[];
-  fileType: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-  options: any[];
-  votes: any[];
-  location: {
-    type: string;
-    coordinates: [number, number];
-  };
+    _id: string;
+    userId: string;
+    categoryId: string;
+    postReport: string;
+    userReport: string;
+    content: string;
+    files: File[];
+    fileType: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    options: any[];
+    votes: any[];
+    location: {
+        type: string;
+        coordinates: [number, number];
+    };
 }
 
 
 export type UserProps = {
-  _id: string;
-  image: string;
-  title: string;
-  description: string;
-  price: string;
-  // avatarUrl: string;
-  // isVerified: boolean; 
-  email: string;
-  gender: string;
+    _id: string;
+    image: string;
+    title: string;
+    description: string;
+    price: string;
+    // avatarUrl: string;
+    // isVerified: boolean; 
+    email: string;
+    gender: string;
 };
 
 type UserTableRowProps = {
-  row: UserProps;
-  selected: boolean;
-  onSelectRow: () => void;
+    row: UserProps;
+    selected: boolean;
+    onSelectRow: () => void;
 };
 
 
@@ -61,95 +61,101 @@ type UserTableRowProps = {
 
 
 export function ProductTableRow({ row, selected, onSelectRow }: UserTableRowProps) {
-  const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+    const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
-  const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    setOpenPopover(event.currentTarget);
-  }, []);
+    const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+        setOpenPopover(event.currentTarget);
+    }, []);
 
-  const handleClosePopover = useCallback(() => {
-    setOpenPopover(null);
-  }, []);
-
-
-
-  
+    const handleClosePopover = useCallback(() => {
+        setOpenPopover(null);
+    }, []);
 
 
-  return (
-    <>
-      <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell padding="checkbox">
-          {/* <Checkbox disableRipple checked={selected} onChange={onSelectRow} /> */}
-        </TableCell>
+    const handleDelete = useCallback(async (id: string) => {
+        const confirmed = window.confirm("Are you sure you want to delete ?")
+        if (confirmed) {
+            const response = await api.delete(`/api/product?id=${id}`);
+            console.log("@@@@@", response?.data?.data)
+            
+        }
+        setOpenPopover(null);
+    }, []);
 
-        <TableCell component="th" scope="row">
-          <Box gap={2} display="flex" alignItems="center">
-            {/* <Avatar alt={row.name} src={row.avatarUrl} /> */}
-            {row.image}
-          </Box>
-        </TableCell>
+    return (
+        <>
+            <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
+                <TableCell padding="checkbox">
+                    {/* <Checkbox disableRipple checked={selected} onChange={onSelectRow} /> */}
+                </TableCell>
 
-        <TableCell>{row.title}</TableCell>
+                <TableCell component="th" scope="row">
+                    <Box gap={2} display="flex" alignItems="center">
+                        {/* <Avatar alt={row.name} src={row.avatarUrl} /> */}
+                        {row.image}
+                    </Box>
+                </TableCell>
 
-        <TableCell>{row.price}</TableCell>
+                <TableCell>{row.title}</TableCell>
 
-        <TableCell align="center">
-          {row.description}
-        </TableCell>
+                <TableCell>{row.price}</TableCell>
 
-        {/* <TableCell>
+                <TableCell align="center">
+                    {row.description}
+                </TableCell>
+
+                {/* <TableCell>
           <Label color={(row.status === 'banned' && 'error') || 'success'}>{row.status}</Label>
         </TableCell> */}
 
-        <TableCell align="right">
-          <IconButton onClick={handleOpenPopover}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-        </TableCell>
-      </TableRow>
+                <TableCell align="right">
+                    <IconButton onClick={handleOpenPopover}>
+                        <Iconify icon="eva:more-vertical-fill" />
+                    </IconButton>
+                </TableCell>
+            </TableRow>
 
 
-      <Popover
-        open={!!openPopover}
-        anchorEl={openPopover}
-        onClose={handleClosePopover}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <MenuList
-          disablePadding
-          sx={{
-            p: 0.5,
-            gap: 0.5,
-            width: 140,
-            display: 'flex',
-            flexDirection: 'column',
-            [`& .${menuItemClasses.root}`]: {
-              px: 1,
-              gap: 2,
-              borderRadius: 0.75,
-              [`&.${menuItemClasses.selected}`]: { bgcolor: 'action.selected' },
-            },
-          }}
-        >
-          <MenuItem onClick={handleClosePopover}>
-            <Iconify icon="solar:pen-bold" />
-            Edit
-          </MenuItem>
+            <Popover
+                open={!!openPopover}
+                anchorEl={openPopover}
+                onClose={handleClosePopover}
+                anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <MenuList
+                    disablePadding
+                    sx={{
+                        p: 0.5,
+                        gap: 0.5,
+                        width: 140,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        [`& .${menuItemClasses.root}`]: {
+                            px: 1,
+                            gap: 2,
+                            borderRadius: 0.75,
+                            [`&.${menuItemClasses.selected}`]: { bgcolor: 'action.selected' },
+                        },
+                    }}
+                >
+                    <MenuItem onClick={handleClosePopover}>
+                        <Iconify icon="solar:pen-bold" />
+                        Edit
+                    </MenuItem>
 
-          <MenuItem
-            // onClick={handleDelete}
-          >
-            <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
-          </MenuItem>
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+                    <MenuItem
+                        onClick={() => handleDelete(row?._id)}
+                    >
+                        <Iconify icon="solar:trash-bin-trash-bold" />
+                        Delete
+                    </MenuItem>
+                    {/* <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
           <Iconify icon="mdi:block" />
             Block 
-          </MenuItem>
-        </MenuList>
-      </Popover>
-    </>
-  );
+          </MenuItem> */}
+                </MenuList>
+            </Popover>
+        </>
+    );
 }
