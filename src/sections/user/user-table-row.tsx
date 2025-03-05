@@ -13,7 +13,7 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { toast } from 'react-toastify';
-import { deleteUser } from 'src/api/url';
+import { api,deleteUser } from 'src/api/url';
 // ----------------------------------------------------------------------
 
 
@@ -71,9 +71,15 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
     setOpenPopover(null);
   }, []);
 
-
-
-  
+  const handleDelete = useCallback(async (id: string) => {
+          const confirmed = window.confirm("Are you sure you want to delete ?")
+          if (confirmed) {
+              const response = await api.delete(`/api/deleteAccount?id=${id}`);
+              console.log("@@@@@", response?.data?.data)
+              
+          }
+          setOpenPopover(null);
+      }, []);
 
 
   return (
@@ -139,7 +145,7 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
           </MenuItem>
 
           <MenuItem
-            // onClick={handleDelete}
+            onClick={() => handleDelete(row?._id)}
           >
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete

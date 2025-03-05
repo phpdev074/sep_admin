@@ -160,6 +160,7 @@ const table = useTable();
       <Typography variant="h4" sx={{ mb: 5 }}>
         Products
       </Typography>
+      
       <Card>
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>

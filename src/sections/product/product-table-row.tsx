@@ -68,9 +68,10 @@ export function ProductTableRow({ row, selected, onSelectRow }: UserTableRowProp
     }, []);
 
     const handleClosePopover = useCallback(() => {
+        const confirmed = window.confirm("Are you sure you want to edit")
+        
         setOpenPopover(null);
     }, []);
-
 
     const handleDelete = useCallback(async (id: string) => {
         const confirmed = window.confirm("Are you sure you want to delete ?")
@@ -156,6 +157,7 @@ export function ProductTableRow({ row, selected, onSelectRow }: UserTableRowProp
           </MenuItem> */}
                 </MenuList>
             </Popover>
+
         </>
     );
 }
