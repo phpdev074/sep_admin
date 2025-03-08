@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 export const toastRef = createRef();
 
-
+// COMMENT
 export const ShowToast = (message, type = 'info') => {
   switch (type) {
     case 'success':
