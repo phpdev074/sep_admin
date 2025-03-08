@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://0p886qg5-4004.inc1.devtunnels.ms'; // Change to your actual API
+const API_BASE_URL = 'http://85.31.234.205:4004'; // Change to your actual API
                     
 export const api = axios.create({
   baseURL: API_BASE_URL,

@@ -1,5 +1,7 @@
+/* eslint-disable */
 import { useState, useCallback, useEffect } from 'react';
-
+import Modal from '@mui/material/Modal';
+import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Unstable_Grid2';
 import Pagination from '@mui/material/Pagination';
@@ -8,18 +10,12 @@ import { api } from 'src/api/url';
 import { _products, _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { useQuery } from '@tanstack/react-query';
-// import { ProductItem } from '../product-item';
-// import { ProductSort } from '../product-sort';
-// import { CartIcon } from '../product-cart-widget';
-// import { ProductFilters } from '../product-filters';
-
-// import type { FiltersProps } from '../product-filters';
+import Button from '@mui/material/Button';
 import { Card, Table, TablePagination } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import TableContainer from '@mui/material/TableContainer';
 import { UserTableHead } from 'src/sections/blockUser/user-table-head';
 import TableBody from '@mui/material/TableBody';
-// import { TableBody } from '@mui/material';
 import { UserTableRow } from 'src/sections/user/user-table-row';
 import { TableEmptyRows } from 'src/sections/user/table-empty-rows';
 import { emptyRows } from 'src/sections/user/utils';
@@ -27,11 +23,21 @@ import { TableNoData } from 'src/sections/blockUser/table-no-data';
 import { applyFilter, getComparator } from 'src/sections/blockUser/utils';
 import { ProductTableRow } from '../product-table-row';
 
+
+
+
+
+// import { TableBody } from '@mui/material';
+// import { ProductItem } from '../product-item';
+// import { ProductSort } from '../product-sort';
+// import { CartIcon } from '../product-cart-widget';
+// import { ProductFilters } from '../product-filters';
+// import type { FiltersProps } from '../product-filters';
 // ----------------------------------------------------------------------
 
 
 export type ProductItemProps = {
-  id: string;
+  _id: string;
   title: string;
   price: string;
   description: string;
@@ -40,52 +46,25 @@ export type ProductItemProps = {
   updatedAt: string;
 };
 
-
-const GENDER_OPTIONS = [
-  { value: 'men', label: 'Men' },
-  { value: 'women', label: 'Women' },
-  { value: 'kids', label: 'Kids' },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'shose', label: 'Shose' },
-  { value: 'apparel', label: 'Apparel' },
-  { value: 'accessories', label: 'Accessories' },
-];
-
-const RATING_OPTIONS = ['up4Star', 'up3Star', 'up2Star', 'up1Star'];
-
-const PRICE_OPTIONS = [
-  { value: 'below', label: 'Below $25' },
-  { value: 'between', label: 'Between $25 - $75' },
-  { value: 'above', label: 'Above $75' },
-];
-
-const COLOR_OPTIONS = [
-  '#00AB55',
-  '#000000',
-  '#FFFFFF',
-  '#FFC0CB',
-  '#FF4842',
-  '#1890FF',
-  '#94D82D',
-  '#FFC107',
-];
-
-const defaultFilters = {
-  price: '',
-  gender: [GENDER_OPTIONS[0].value],
-  colors: [COLOR_OPTIONS[4]],
-  rating: RATING_OPTIONS[0],
-  category: CATEGORY_OPTIONS[0].value,
+type UserTableRowProps = {
+    row: ProductItemProps;
+    selected: boolean;
+    onSelectRow: () => void;    
+    onModification:any;
 };
 
-export function ProductsView() {
+
+export function ProductsView({ row, selected, onSelectRow,onModification }: UserTableRowProps) {
+  const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState('featured');
-
+  const [openModal, setOpenModal] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
-
+  const [formData, setFormData] = useState({
+    title: "",
+    price: "",
+    description: "",
+    image: "",
+});
 
   const [userData, setUserData] = useState<ProductItemProps[]>([]);
   const [filterName, setFilterName] = useState('');
@@ -121,27 +100,7 @@ const table = useTable();
     });
 
 
-  // const [filters, setFilters] = useState<FiltersProps>(defaultFilters);
 
-  // const handleOpenFilter = useCallback(() => {
-  //   setOpenFilter(true);
-  // }, []);
-
-  // const handleCloseFilter = useCallback(() => {
-  //   setOpenFilter(false);
-  // }, []);
-
-  // const handleSort = useCallback((newSort: string) => {
-  //   setSortBy(newSort);
-  // }, []);
-
-  // const handleSetFilters = useCallback((updateState: Partial<FiltersProps>) => {
-  //   setFilters((prevValue) => ({ ...prevValue, ...updateState }));
-  // }, []);
-
-  // const canReset = Object.keys(filters).some(
-  //   (key) => filters[key as keyof FiltersProps] !== defaultFilters[key as keyof FiltersProps]
-  // );
 
   if (isLoading) return <Typography>Loading...</Typography>;
   // if (error) return <Typography>Error loading products</Typography>;
@@ -155,10 +114,41 @@ const table = useTable();
   
   const notFound =!!filterName;
 
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+        const response = await api.post(`/api/product`, formData);
+        console.log("response",response)
+        if (response.status === 200) {
+            // alert('Product updated successfully');
+            // onModification();    
+            handleCloseModal();
+        } else {
+            // alert('Failed to update product. Please try again.');
+        }
+    } catch (error) {
+        console.error('Creating product failed', error);
+        alert('An error occurred while creating the product.');
+    } finally {
+        setLoading(false);
+    }
+};
+      
+      const handleCloseModal = () => {
+        setOpenModal(false);
+      };
+
+
+
+
   return (
     <DashboardContent>
       <Typography variant="h4" sx={{ mb: 5 }}>
         Products
+      <Button  variant="contained" size="medium" style={{marginLeft:920, backgroundColor: "black"}} onClick={() => setOpenModal(true)}  >
+          Add Product
+        </Button>
       </Typography>
       
       <Card>
@@ -192,12 +182,13 @@ const table = useTable();
                     table.page * table.rowsPerPage,
                     table.page * table.rowsPerPage + table.rowsPerPage
                   )
-                  .map((row: any) => (
+                  .map((row: any) => ( 
                     <ProductTableRow
                       key={row?._id}
                       row={row}
                       selected={table.selected.includes(row?._id)}
                       onSelectRow={() => table.onSelectRow(row?._id)}
+                      onModification = {fetchUsers}
                     />
                   ))}
 
@@ -222,6 +213,95 @@ const table = useTable();
           onRowsPerPageChange={table.onChangeRowsPerPage}
         />
       </Card>
+
+      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+      <Box
+                sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    boxShadow: 24,
+                    p: 4,
+                    borderRadius: 2,
+                }}
+            >
+                <h2>Add Product</h2>
+
+                <Box display="flex" justifyContent="center" mb={2}>
+                            <img 
+                                src={ formData.image || 'https://via.placeholder.com/150'} 
+                                alt="Product"
+                                style={{ width: '70%', height: 'auto', borderRadius: 8 }}
+                            />
+                        </Box>
+
+                        <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = reader.result as string; 
+                setFormData((prev) => ({ ...prev, image: result }));
+            };
+            reader.readAsDataURL(file);
+        }
+    }}
+/>
+
+                <TextField
+                            label="Title"
+                            name="title"
+                            fullWidth
+                            margin="normal"
+                            // value={formData.title}
+                            // onChange={handleChange}
+                        />
+
+
+                        <TextField
+                                    label="Price"
+                                    name="price"
+                                    fullWidth
+                                    margin="normal"
+                                    // value={formData.price}
+                                    // onChange={handleChange}
+                                />
+                                <TextField
+                                    label="CheckOut URL"
+                                    name="checkout_URL"
+                                    fullWidth
+                                    margin="normal"
+                                    // value={formData.price}
+                                    // onChange={handleChange}
+                                />
+                                <TextField
+                                            label="Description"
+                                            name="description"
+                                            fullWidth
+                                            margin="normal"
+                                            multiline
+                                            rows={3}
+                                            // value={formData.description}
+                                            // onChange={handleChange}
+                                        />
+                
+                <Box display="flex" justifyContent="space-between" mt={2}>
+                     <Button variant="contained" color="primary" onClick={handleSubmit} >
+                         Add Product
+                     </Button>
+                    <Button variant="outlined" onClick={handleCloseModal}>
+                        Cancel
+                    </Button> 
+                </Box>
+            </Box>
+      </Modal>
+
 
 
 
