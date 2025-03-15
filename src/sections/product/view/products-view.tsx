@@ -23,19 +23,6 @@ import { TableNoData } from 'src/sections/blockUser/table-no-data';
 import { applyFilter, getComparator } from 'src/sections/blockUser/utils';
 import { ProductTableRow } from '../product-table-row';
 
-
-
-
-
-// import { TableBody } from '@mui/material';
-// import { ProductItem } from '../product-item';
-// import { ProductSort } from '../product-sort';
-// import { CartIcon } from '../product-cart-widget';
-// import { ProductFilters } from '../product-filters';
-// import type { FiltersProps } from '../product-filters';
-// ----------------------------------------------------------------------
-
-
 export type ProductItemProps = {
   _id: string;
   title: string;
@@ -47,110 +34,114 @@ export type ProductItemProps = {
 };
 
 type UserTableRowProps = {
-    row: ProductItemProps;
-    selected: boolean;
-    onSelectRow: () => void;    
-    onModification:any;
+  row: ProductItemProps;
+  selected: boolean;
+  onSelectRow: () => void;
+  onModification: any;
 };
 
-
-export function ProductsView({ row, selected, onSelectRow,onModification }: UserTableRowProps) {
+export function ProductsView({ row, selected, onSelectRow, onModification }: UserTableRowProps) {
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState('featured');
   const [openModal, setOpenModal] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
+  const [imageUrl, setImageUrl] = useState();
   const [formData, setFormData] = useState({
-    title: "",
-    price: "",
-    description: "",
-    image: "",
-});
+    title: '',
+    price: '',
+    description: '',
+    image: '',
+  });
 
   const [userData, setUserData] = useState<ProductItemProps[]>([]);
   const [filterName, setFilterName] = useState('');
 
-  // console.log("userData",userData)
-  // const fetchUsers = async () => {
-  //   try {
-  //     const response = await api.get('/api/product'); // Adjust API endpoint as needed
+  console.log('===>>>>userData', userData);
 
-  //     setUserData(response?.data?.data?.data)
-  //     // return response.data;
-  //     console.log("@@@@@",response?.data?.data?.data)
-  //   } catch (error) {
-  //    console.log(error) 
-  //   }
-  // }
-const table = useTable();
+  const table = useTable();
 
   const fetchUsers = async () => {
-    const response = await api.get('/api/product'); 
-    setUserData(response?.data?.data?.data)
-    console.log("@@@@@",response?.data?.data?.data)
-  }
+    const response = await api.get('/api/product');
+    setUserData(response?.data?.data?.data);
+    console.log('@@@@@', response?.data?.data?.data);
+  };
 
-  // useEffect(()=>{
-  //   fetchUsers()
-  // },[])
-
-    const { data: getAllPost, error, isLoading } = useQuery({
-      queryKey: ['api/product'],
-      queryFn: fetchUsers,  
-      staleTime: 60000, 
-    });
-
-
-
+  const {
+    data: getAllPost,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['api/product'],
+    queryFn: fetchUsers,
+    staleTime: 60000,
+  });
 
   if (isLoading) return <Typography>Loading...</Typography>;
-  // if (error) return <Typography>Error loading products</Typography>;
 
-  //  const dataFiltered: UserProps[] = applyFilter({
-  //     inputData: userData,
-  //     comparator: getComparator(table.order, table.orderBy),
-  //     filterName,
-  //   });
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      console.log('====>>>>file', file);
+      const formData = new FormData();
+      formData.append('image', file);
+      console.log('===>>>>>', formData);
+      try {
+        const response = await api.post(
+          '/fileUpload',
+          { files: file },
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          }
+        );
+        console.log('===>>>response', response?.data?.data.urls[0]);
+        if (response.status === 200) {
+          setFormData((prev) => ({ ...prev, image: response?.data?.data.urls[0] }));
+          setImageUrl(response?.data?.data.urls[0]);
+          console.log('Uploaded Image URL:', response?.data?.data.urls[0]);
+        }
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        alert('Failed to upload image. Please try again.');
+      }
+    }
+  };
 
-  
-  const notFound =!!filterName;
-
-
+  const notFound = !!filterName;
   const handleSubmit = async () => {
     setLoading(true);
     try {
-        const response = await api.post(`/api/product`, formData);
-        console.log("response",response)
-        if (response.status === 200) {
-            // alert('Product updated successfully');
-            // onModification();    
-            handleCloseModal();
-        } else {
-            // alert('Failed to update product. Please try again.');
-        }
+      const response = await api.post(`/api/product`, formData);
+      console.log('response', response);
+      if (response.status === 200) {
+        handleCloseModal();
+      } else {
+        // alert('Failed to update product. Please try again.');
+      }
     } catch (error) {
-        console.error('Creating product failed', error);
-        alert('An error occurred while creating the product.');
+      console.error('Creating product failed', error);
+      alert('An error occurred while creating the product.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
-      
-      const handleCloseModal = () => {
-        setOpenModal(false);
-      };
-
-
-
+  };
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
 
   return (
     <DashboardContent>
       <Typography variant="h4" sx={{ mb: 5 }}>
         Products
-      <Button  variant="contained" size="medium" style={{marginLeft:920, backgroundColor: "black"}} onClick={() => setOpenModal(true)}  >
+        <Button
+          variant="contained"
+          size="medium"
+          style={{ marginLeft: 920, backgroundColor: 'black' }}
+          onClick={() => setOpenModal(true)}
+        >
           Add Product
         </Button>
       </Typography>
-      
+
       <Card>
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
@@ -182,13 +173,13 @@ const table = useTable();
                     table.page * table.rowsPerPage,
                     table.page * table.rowsPerPage + table.rowsPerPage
                   )
-                  .map((row: any) => ( 
+                  .map((row: any) => (
                     <ProductTableRow
                       key={row?._id}
                       row={row}
                       selected={table.selected.includes(row?._id)}
                       onSelectRow={() => table.onSelectRow(row?._id)}
-                      onModification = {fetchUsers}
+                      onModification={fetchUsers}
                     />
                   ))}
 
@@ -215,100 +206,119 @@ const table = useTable();
       </Card>
 
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
-      <Box
-                sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 400,
-                    bgcolor: 'background.paper',
-                    boxShadow: 24,
-                    p: 4,
-                    borderRadius: 2,
-                }}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <h2>Add Product</h2>
+
+          <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
+            {/* Image Preview */}
+            <Box
+              sx={{
+                width: 120,
+                height: 120,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                border: '2px solid #ccc',
+                backgroundColor: '#f4f4f4',
+              }}
             >
-                <h2>Add Product</h2>
-
-                <Box display="flex" justifyContent="center" mb={2}>
-                            <img 
-                                src={ formData.image || 'https://via.placeholder.com/150'} 
-                                alt="Product"
-                                style={{ width: '70%', height: 'auto', borderRadius: 8 }}
-                            />
-                        </Box>
-
-                        <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string; 
-                setFormData((prev) => ({ ...prev, image: result }));
-            };
-            reader.readAsDataURL(file);
-        }
-    }}
-/>
-
-                <TextField
-                            label="Title"
-                            name="title"
-                            fullWidth
-                            margin="normal"
-                            // value={formData.title}
-                            // onChange={handleChange}
-                        />
-
-
-                        <TextField
-                                    label="Price"
-                                    name="price"
-                                    fullWidth
-                                    margin="normal"
-                                    // value={formData.price}
-                                    // onChange={handleChange}
-                                />
-                                <TextField
-                                    label="CheckOut URL"
-                                    name="checkout_URL"
-                                    fullWidth
-                                    margin="normal"
-                                    // value={formData.price}
-                                    // onChange={handleChange}
-                                />
-                                <TextField
-                                            label="Description"
-                                            name="description"
-                                            fullWidth
-                                            margin="normal"
-                                            multiline
-                                            rows={3}
-                                            // value={formData.description}
-                                            // onChange={handleChange}
-                                        />
-                
-                <Box display="flex" justifyContent="space-between" mt={2}>
-                     <Button variant="contained" color="primary" onClick={handleSubmit} >
-                         Add Product
-                     </Button>
-                    <Button variant="outlined" onClick={handleCloseModal}>
-                        Cancel
-                    </Button> 
-                </Box>
+              <img
+                src={
+                  imageUrl
+                    ? `http://85.31.234.205:4004/public/upload/${imageUrl}`
+                    : '/default-user-icon.png'
+                }
+                alt="Product"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </Box>
+
+            {/* Styled Upload Button */}
+            <label
+              htmlFor="imageUpload"
+              style={{
+                cursor: 'pointer',
+                padding: '10px 20px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                borderRadius: '8px',
+                display: 'inline-block',
+              }}
+            >
+              Upload Image
+              <input
+                id="imageUpload"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </Box>
+
+          <TextField
+            label="Title"
+            name="title"
+            fullWidth
+            margin="normal"
+            // value={formData.title}
+            // onChange={handleChange}
+          />
+
+          <TextField
+            label="Price"
+            name="price"
+            fullWidth
+            margin="normal"
+            // value={formData.price}
+            // onChange={handleChange}
+          />
+          <TextField
+            label="CheckOut URL"
+            name="checkout_URL"
+            fullWidth
+            margin="normal"
+            // value={formData.price}
+            // onChange={handleChange}
+          />
+          <TextField
+            label="Description"
+            name="description"
+            fullWidth
+            margin="normal"
+            multiline
+            rows={3}
+            // value={formData.description}
+            // onChange={handleChange}
+          />
+
+          <Box display="flex" justifyContent="space-between" mt={2}>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
+              Add Product
+            </Button>
+            <Button variant="outlined" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+          </Box>
+        </Box>
       </Modal>
-
-
-
-
     </DashboardContent>
   );
 }
-
 
 export function useTable() {
   const [page, setPage] = useState(0);
