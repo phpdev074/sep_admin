@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://85.31.234.205:4004'; // Change to your actual API
+const API_BASE_URL = 'https://api.onesepmedia.com'; // Change to your actual API
                     
 export const api = axios.create({
   baseURL: API_BASE_URL,
