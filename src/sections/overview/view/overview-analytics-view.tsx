@@ -1,10 +1,12 @@
 import { useState,useEffect } from 'react';
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import { useQuery } from '@tanstack/react-query';
 import { _tasks, _posts, _timeline } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { api } from 'src/api/url';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { AnalyticsNews } from '../analytics-news';
 import { AnalyticsTasks } from '../analytics-tasks';
@@ -59,9 +61,9 @@ export function OverviewAnalyticsView() {
 
 
   const { data: getAllUsers, error, isLoading } = useQuery({
-    queryKey: ['admin/getAllUsers'],
+    queryKey: ['/admin/getAllUsers'],
     queryFn: fetchUsers,
-    staleTime: 60000, // Cache for 60 seconds
+    staleTime: 0, // Cache for 60 seconds
   });
   const { data: activeUsers, error: activeUsersError, isLoading: activeUsersLoading } = useQuery({
     queryKey: ['admin/getActiveUsers'],
@@ -86,23 +88,172 @@ export function OverviewAnalyticsView() {
 
   useEffect(() => {
     if (monthlyUsers) {
-      // Extract user count for each month from the fetched data
-      const userCounts = Array(12).fill(0); // Initialize array with 12 months
+      
+      const userCounts = Array(12).fill(0); 
       monthlyUsers.forEach((entry:any) => {
-        userCounts[entry._id.month - 1] = entry.userCount; // Populate counts for each month
+        userCounts[entry._id.month - 1] = entry.userCount; 
       });
-      setMonthlyUserData(userCounts); // Set the monthly user data
+      setMonthlyUserData(userCounts); 
     }
   }, [monthlyUsers]);
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (isLoading)
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Outer rotating ring */}
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 120,
+            height: 120,
+            borderRadius: '50%',
+            border: '12px solid transparent',
+            borderTop: '12px solid #6366f1',
+            animation: 'spin 2s linear infinite, colorChange 3s linear infinite',
+            zIndex: 2,
+            '@keyframes spin': {
+              '0%': {
+                transform: 'rotate(0deg)',
+              },
+              '100%': {
+                transform: 'rotate(360deg)',
+              },
+            },
+            '@keyframes colorChange': {
+              '0%': {
+                borderTopColor: '#6366f1',
+              },
+              '50%': {
+                borderTopColor: '#3b82f6',
+              },
+              '100%': {
+                borderTopColor: '#6366f1',
+              },
+            },
+          }}
+        />
+        
+        {/* Middle rotating ring */}
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 160,
+            height: 160,
+            borderRadius: '50%',
+            border: '12px solid transparent',
+            borderTop: '12px solid #f59e0b',
+            animation: 'spin 2.5s linear infinite, colorChange2 3.5s linear infinite',
+            zIndex: 1,
+            '@keyframes colorChange2': {
+              '0%': {
+                borderTopColor: '#f59e0b',
+              },
+              '50%': {
+                borderTopColor: '#f97316',
+              },
+              '100%': {
+                borderTopColor: '#f59e0b',
+              },
+            },
+          }}
+        />
+        
+        {/* Inner rotating ring */}
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 200,
+            height: 200,
+            borderRadius: '50%',
+            border: '12px solid transparent',
+            borderTop: '12px solid #10b981',
+            animation: 'spin 3s linear infinite, colorChange3 4s linear infinite',
+            zIndex: 0,
+            '@keyframes colorChange3': {
+              '0%': {
+                borderTopColor: '#10b981',
+              },
+              '50%': {
+                borderTopColor: '#22c55e',
+              },
+              '100%': {
+                borderTopColor: '#10b981',
+              },
+            },
+          }}
+        />
+  
+        {/* Pulsating particles */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {Array.from({ length: 10 }).map((_, index) => (
+            <Box
+              key={index}
+              sx={{
+                position: 'absolute',
+                width: 8,
+                height: 8,
+                backgroundColor: '#6366f1',
+                borderRadius: '50%',
+                animation: `pulse ${1.5 + Math.random()}s ease-in-out infinite`,
+                top: `${Math.random() * 90}%`,
+                left: `${Math.random() * 90}%`,
+                animationDelay: `${Math.random() * 2}s`,
+              }}
+            />
+          ))}
+        </Box>
+  
+        {/* 3D Depth */}
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0))',
+            animation: 'spin 2s linear infinite, fadeOut 5s ease-out infinite',
+            zIndex: 3,
+            '@keyframes fadeOut': {
+              '0%': {
+                opacity: 1,
+              },
+              '100%': {
+                opacity: 0.2,
+              },
+            },
+          }}
+        />
+      </Box>
+    );
+  
+  
+  
+  // if (error) return <p>Error: {error.message}</p>;
 
-  // Example calculations (Modify as needed)
   const totalUsers = getAllUsers?.data?.length || 0
-  const totalActiveUsers = activeUser.length || 0
   const totalBlockedUsers = blockUser.length || 0
-  const totalPosts = getAllPost?.data?.length 
-  console.log("totalPosts",totalPosts )
+  const totalActiveUsers = totalUsers - totalBlockedUsers || 0
+  const totalPosts = getAllPost?.data?.length || 0
+  // console.log("totalPosts",totalPosts )
 
 
   // const activeUsers = users.filter((user) => user.active).length;

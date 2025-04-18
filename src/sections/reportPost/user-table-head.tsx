@@ -13,7 +13,7 @@ type UserTableHeadProps = {
   orderBy: string;
   rowCount: number;
   numSelected: number;
-  order: 'asc' | 'desc';  
+  order: 'asc' | 'desc';
   onSort: (id: string) => void;
   headLabel: Record<string, any>[];
   onSelectAllRows: (checked: boolean) => void;

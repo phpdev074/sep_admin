@@ -34,24 +34,24 @@ interface File {
   _id: string;
 }
 
-// interface Post {
-//   _id: string;
-//   userId: string;
-//   name: string;
-//   categoryId: string;
-//   content: string;
-//   files: File[];
-//   fileType: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   __v: number;
-//   options: any[];
-//   votes: any[];
-//   location: {
-//     type: string;
-//     coordinates: [number, number];
-//   };
-// }
+interface Post {
+  _id: string;
+  userId: string;
+  name: string;
+  categoryId: string;
+  content: string;
+  files: File[];
+  fileType: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  options: any[];
+  votes: any[];
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
+}
 
 // type Table = {
 //   selected: string[];
@@ -60,17 +60,17 @@ interface File {
 // ----------------------------------------------------------------------
 
 export function PostView() {
-  const [userData, setUserData] = useState([]);
+  const [userData, setUserData] = useState<Post[]>([]);
 
   const fetchUsers = async () => {
-    const response = await api.get('/admin/getAllPost'); // Adjust API endpoint as needed
+    const response = await api.get('/admin/getAllPost'); 
     setUserData(response?.data?.data)
     // return response.data;
   }
     const { data: getAllPost, error, isLoading } = useQuery({
       queryKey: ['admin/getAllPost'],
       queryFn: fetchUsers,  
-      staleTime: 60000, // Cache for 60 seconds
+      // staleTime: 0, 
     });
   const table = useTable();
     
@@ -95,6 +95,10 @@ export function PostView() {
   });
 
   const notFound = !dataFiltered.length && !!filterName;
+
+  const handleRemovePost = (id: string) => {
+    setUserData(prev => prev.filter(post => post._id !== id));
+  };
 
   return (
     <DashboardContent>
@@ -157,6 +161,7 @@ export function PostView() {
                       row={row}
                       selected={table.selected.includes(row?._id)}
                       onSelectRow={() => table.onSelectRow(row?._id)}
+                      onDeletePost={handleRemovePost}
                     />
                   ))}
 

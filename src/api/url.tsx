@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://api.onesepmedia.com'; // Change to your actual API
+// export const API_BASE_URL = 'http://85.31.234.205:4004'; 
+export const API_BASE_URL = 'https://0p886qg5-4004.inc1.devtunnels.ms'; 
                     
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,10 +13,10 @@ export const api = axios.create({
 
 const fetchPosts = async () => {
   try {
-    const response = await api.get('/admin/getAllPost'); // Adjust endpoint if needed
+    const response = await api.get('/admin/getAllPost'); 
     return response.data.map((post: any) => ({
       id: post.id,
-      image: post.image || "/default-image.png", // Provide a fallback image
+      image: post.image || "/default-image.png", 
       content: post.content || "No content available",
       createdAt: post.createdAt || "No date available",
     }));

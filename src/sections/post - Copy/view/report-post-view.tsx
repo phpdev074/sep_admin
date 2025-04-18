@@ -59,17 +59,17 @@ interface File {
 // };
 // ----------------------------------------------------------------------
 
-export function ReportPostView() {
+export function ReportPostViews() {
   const [userData, setUserData] = useState([]);
  
   const fetchUsers = async () => {
-    const response = await api.get('/admin/getReportPost'); // Adjust API endpoint as needed
-    setUserData(response?.data?.data?.totalReportUsers)
+    const response = await api.get('/api/post/getReportedPosts'); 
+    setUserData(response?.data?.data)
     // return response.data;
-    console.log("123654798",response?.data?.data?.totalReportUsers.count);
+    console.log("123654798",response?.data?.data);
   }
-    const { data: getReportPost, error, isLoading } = useQuery({
-      queryKey: ['admin/getReportPost'],
+    const { data: getReportedPosts, error, isLoading } = useQuery({
+      queryKey: ['/api/post/getReportedPosts'],
       queryFn: fetchUsers,  
       staleTime: 60000, // Cache for 60 seconds
     });

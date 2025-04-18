@@ -36,6 +36,8 @@ interface Post {
   files: File[];
   fileType: string;
   createdAt: string;
+  reason: string;
+  count: string;
   image: string;
   updatedAt: string;
   __v: number;
@@ -110,7 +112,7 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
     const confirmed = window.confirm("Are you sure you want to delete the post");
     if (confirmed) {
       try {
-        const response = await api.delete(`/api/post?id=${id}`);
+        const response = await api.delete(`/api/post/deleteReportPost?id=${id}`);
         onDeletePost(id);
       } catch (error) {
         console.error("Error deleting post:", error);
@@ -133,7 +135,7 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           {/* Displaying Image */}
           <Box display="flex" justifyContent="center">
             <Avatar
-              src={selectedImage || `${API_BASE_URL}${row.files?.[0]?.file}`}  // Display selected image or original image
+              src={selectedImage || `${API_BASE_URL}${row.files?.[0]?.file}`}  
               alt="Post Image"
               variant="rounded"
               sx={{ width: 120, height: 120 }}
@@ -167,9 +169,9 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
             <Typography variant="body2" color="text.secondary">
               Created At:
             </Typography>
-            <Typography variant="body1">
+            {/* <Typography variant="body1">
               {format(new Date(row.createdAt), 'PPpp')}
-            </Typography>
+            </Typography> */}
           </Box>
         </Box>
       </DialogContent>
@@ -195,9 +197,11 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           </Box>
         </TableCell>
 
-        <TableCell>{row.content}</TableCell>
+        {/* <TableCell>{row.reason}</TableCell> */}
 
-        <TableCell>{format(new Date(row.createdAt), 'PPpp')}</TableCell>
+        <TableCell>{row.reason}</TableCell>
+
+        <TableCell>{row.count}</TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>
@@ -230,12 +234,12 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           }}
         >
           <MenuItem onClick={handleOpenEditModal}>
-            {/* <Iconify icon="solar:pen-bold" /> */}
+            
             Edit
           </MenuItem>
 
           <MenuItem onClick={() => handleDelete(row?._id)} sx={{ color: 'error.main' }}>
-            {/* <Iconify icon="solar:trash-bin-trash-bold" /> */}
+            
             Delete
           </MenuItem>
         </MenuList>

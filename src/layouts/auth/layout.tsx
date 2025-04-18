@@ -49,7 +49,25 @@ export function AuthLayout({ sx, children, header }: AuthLayoutProps) {
                 This is an info Alert.
               </Alert>
             ),
-            leftArea: <img src="/assets/icons/glass/logo.png" alt="logo" style={{height:"140px",width: "140px",marginTop:"80px", marginLeft:"660px" }} />,
+            leftArea:(  <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              width: '100%', 
+              height: '100%'
+            }}> 
+             <img 
+            src="/assets/icons/glass/logo.png" 
+            alt="logo" 
+            style={{ 
+              maxWidth: '100%', 
+              height: '160px', 
+              width: '160px',
+              marginTop: '170px' 
+            }} 
+          />
+          </div>
+            ),
             // rightArea: (
             //   <Link
             //     component={RouterLink}
@@ -77,18 +95,19 @@ export function AuthLayout({ sx, children, header }: AuthLayoutProps) {
           height: 1,
           zIndex: -1,
           content: "''",
-          opacity: 0.24,
+          // opacity: 0.24,
           position: 'fixed',
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center center',
-          backgroundImage: `url(/assets/background/overlay.jpg)`,
+          // backgroundPosition: 'center center',
+          // backgroundImage: `url(/assets/background/overlay.jpg)`,
+          backgroundColor: 'white',
           [stylesMode.dark]: { opacity: 0.08 },
         },
         ...sx,
       }}
     >
-      <Main layoutQuery={layoutQuery}>{children}</Main>
+      <Main style={{marginTop:"150px"}} layoutQuery={layoutQuery}>{children}</Main>
     </LayoutSection>
   );
 }

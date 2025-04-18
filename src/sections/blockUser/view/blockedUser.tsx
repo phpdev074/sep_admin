@@ -8,6 +8,8 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
 import { api } from 'src/api/url';
 import { useQuery } from '@tanstack/react-query';
 
@@ -30,13 +32,14 @@ import type { UserProps } from '../user-table-row';
 export function BlockView() {
   const [userData, setUserData] = useState([]);
   const fetchUsers = async () => {
-    const response = await api.get('/admin/getBlockUsers'); // Adjust API endpoint as needed
-    setUserData(response?.data?.data?.totalBlockUsers)
+    const response = await api.get('/admin/getAllBlockedUsersAdmin'); 
+    setUserData(response?.data?.data)
+    // console.log(response?.data?.data,"===>>>")
   }
-  const { data: getBlockUsers, error, isLoading } = useQuery({
-    queryKey: ['admin/getBlockUsers'],
+  const { data: getAllBlockedUsersAdmin, error, isLoading } = useQuery({
+    queryKey: ['admin/getAllBlockedUsersAdmin'],
     queryFn: fetchUsers,
-    staleTime: 60000,
+    // staleTime: 60000,
   });
   const table = useTable();
   const [filterName, setFilterName] = useState('');
@@ -47,7 +50,7 @@ export function BlockView() {
       alignItems="center"
       height="100vh"
     >
-      <CircularProgress /> {/* This is the loader */}
+      <CircularProgress /> 
     </Box>
   );
   const dataFiltered: UserProps[] = applyFilter({
@@ -59,6 +62,9 @@ export function BlockView() {
   const notFound = !dataFiltered.length && !!filterName;
   return (
     <DashboardContent>
+      <Typography variant="h4" flexGrow={0.2}>
+                Blocked Users
+              </Typography>
       <Card>
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
@@ -76,6 +82,7 @@ export function BlockView() {
                   )
                 }
                 headLabel={[
+                  { id: 'image', label: 'Image' },
                   { id: 'name', label: 'Name' },
                   { id: 'gender', label: 'Gender' },
                   { id: 'role', label: 'Role' },
@@ -85,27 +92,48 @@ export function BlockView() {
                 ]}
               />
               <TableBody>
-                {userData
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
-                  .map((row: any) => (
-                    <UserTableRow
-                      key={row?._id}
-                      row={row}
-                      selected={table.selected.includes(row?._id)}
-                      onSelectRow={() => table.onSelectRow(row?._id)}
-                    />
-                  ))}
+  {userData.length > 0 ? (
+    userData
+      .slice(
+        table.page * table.rowsPerPage,
+        table.page * table.rowsPerPage + table.rowsPerPage
+      )
+      .map((row: any) => (
+        <UserTableRow
+          key={row?._id}
+          row={row}
+          selected={table.selected.includes(row?._id)}
+          onSelectRow={() => table.onSelectRow(row?._id)}
+        />
+      ))
+  ) : (
+    <TableRow>
+      <TableCell colSpan={12} align="center" sx={{ py: 6 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        color: 'text.secondary',
+      }}
+    >
+      <Typography variant="h6" gutterBottom>
+        No users found
+      </Typography>
+    </Box>
+  </TableCell>
+    </TableRow>
+  )}
 
-                <TableEmptyRows
-                  height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
-                />
+  <TableEmptyRows
+    height={68}
+    emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+  />
 
-                {notFound && <TableNoData searchQuery={filterName} />}
-              </TableBody>
+  {notFound && <TableNoData searchQuery={filterName} />}
+</TableBody>
+
+
             </Table>
           </TableContainer>
         </Scrollbar>
@@ -113,7 +141,7 @@ export function BlockView() {
         <TablePagination
           component="div"
           page={table.page}
-          count={_users.length}
+          count={userData.length}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
@@ -190,4 +218,4 @@ export function useTable() {
     onSelectAllRows,
     onChangeRowsPerPage,
   };
-}
+};

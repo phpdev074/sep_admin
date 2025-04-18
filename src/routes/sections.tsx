@@ -8,7 +8,7 @@ import { varAlpha } from 'src/theme/styles';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 import { BlockView } from 'src/sections/blockUser/view/blockedUser';
-import { ReportPostView } from 'src/sections/post - Copy/view';
+import { ReportPostView } from 'src/sections/reportPost/view/post-view';
 
 // ----------------------------------------------------------------------
 

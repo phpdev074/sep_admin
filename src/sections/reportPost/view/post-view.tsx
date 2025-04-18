@@ -13,11 +13,10 @@ import { useQuery } from '@tanstack/react-query';
 
 import { _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-
+import CircularProgress from '@mui/material/CircularProgress';
 import { TableNoData } from '../table-no-data';
 import { UserTableRow } from '../user-table-row';
 import { UserTableHead } from '../user-table-head';
@@ -29,55 +28,82 @@ import type { UserProps } from '../user-table-row';
 
 
 
+interface File {
+  file: string;
+  type: string;
+  _id: string;
+}
+
+interface Post {
+  _id: string;
+  userId: string;
+  name: string;
+  categoryId: string;
+  content: string;
+  files: File[];
+  fileType: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  options: any[];
+  votes: any[];
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
+}
+
+// type Table = {
+//   selected: string[];
+//   onSelectRow: (id: string) => void;
+// };
 // ----------------------------------------------------------------------
 
-export function UserView() {
-  const [userData,setUserData] = useState([])
+export function ReportPostView() {
+  const [userData, setUserData] = useState<Post[]>([]);
+
   const fetchUsers = async () => {
-    const response = await api.get('/admin/getAllUsersAdmin'); 
-    
+    const response = await api.get('/api/post/getReportedPosts'); 
     setUserData(response?.data?.data)
+    console.log("===>>>",response?.data?.data)
     // return response.data;
   }
-    const { data: getAllUsers, error, isLoading } = useQuery({
-      queryKey: ['/admin/getAllUsers'],
+    const { data: getReportedPosts, error, isLoading } = useQuery({
+      queryKey: ['/api/post/getReportedPosts'],
       queryFn: fetchUsers,  
       // staleTime: 0, 
     });
-    const table = useTable();
+  const table = useTable();
     
-    const [filterName, setFilterName] = useState('');
-    if (isLoading) return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-      > 
-        <CircularProgress /> 
-      </Box>
-    );
-    const dataFiltered: UserProps[] = applyFilter({
-      
-      // inputData: _users,//-
-      inputData: userData,//+
-      
-      comparator: getComparator(table.order, table.orderBy),
-      filterName,
-    });
-    
-    const notFound = !dataFiltered.length && !!filterName;
+  const [filterName, setFilterName] = useState('');
+  if (isLoading) return (
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      height="100vh"
+    >
+      <CircularProgress /> 
+    </Box>
+  );
+  const dataFiltered: UserProps[] = applyFilter({
 
-    
+    // inputData: _users,//-
+    inputData: userData, 
+
+    comparator: getComparator(table.order, table.orderBy),
+    filterName,
+  });
+
+  const notFound = !dataFiltered.length && !!filterName;
+
+  const handleRemovePost = (id: string) => {
+    setUserData(prev => prev.filter(post => post._id !== id));
+  };
 
   return (
     <DashboardContent>
-      <Box display="flex" alignItems="center" mb={5}>
-        <Typography variant="h4" flexGrow={1}>
-          Users
-        </Typography>
-        
-      </Box>
+      
 
       <Card>
         
@@ -98,11 +124,11 @@ export function UserView() {
                   )
                 }
                 headLabel={[
-                  { id: 'image', label: 'Image' },
-                  { id: 'name', label: 'Name' },
-                  { id: 'gender', label: 'Gender' },
-                  { id: 'role', label: 'Role' },
-                  { id: 'email', label: 'Email', align: 'center' },
+                  { id: 'reporter', label: 'Reporter' },
+                  // { id: 'files', label: 'Reported Post' },
+                  { id: 'content', label: 'Reason' },
+                  { id: 'createdAt', label: 'Create Time' },
+                  // { id: 'email', label: 'Email', align: 'center' },
                   // { id: 'status', label: 'Status' },
                   { id: '' },
                 ]}
@@ -115,11 +141,11 @@ export function UserView() {
                   )
                   .map((row:any) => (
                     <UserTableRow
-                      key={row._id}
+                      key={row?._id}
                       row={row}
-                      
-                      selected={table.selected.includes(row._id)}
-                      onSelectRow={() => table.onSelectRow(row._id)}
+                      selected={table.selected.includes(row?._id)}
+                      onSelectRow={() => table.onSelectRow(row?._id)}
+                      onDeletePost={handleRemovePost}
                     />
                   ))}
 
@@ -137,7 +163,7 @@ export function UserView() {
         <TablePagination
           component="div"
           page={table.page}
-          count={_users.length}
+          count={userData.length}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
