@@ -82,14 +82,14 @@ export function PostView() {
       alignItems="center"
       height="100vh"
     >
-      <CircularProgress /> {/* This is the loader */}
+      <CircularProgress /> 
     </Box>
   );
   const dataFiltered: UserProps[] = applyFilter({
-// <<<<<<< Tabnine <<<<<<<
+
     // inputData: _users,//-
     inputData: userData,//+
-// >>>>>>> Tabnine >>>>>>>// {"conversationId":"d93ec7bf-3bb2-4650-9d97-bbb060635f5d","source":"instruct"}
+
     comparator: getComparator(table.order, table.orderBy),
     filterName,
   });
@@ -102,28 +102,10 @@ export function PostView() {
 
   return (
     <DashboardContent>
-      {/* <Box display="flex" alignItems="center" mb={5}>
-        <Typography variant="h4" flexGrow={1}>
-          Users
-        </Typography>
-        <Button
-          variant="contained"
-          color="inherit"
-          startIcon={<Iconify icon="mingcute:add-line" />}
-        >
-          New user
-        </Button>
-      </Box> */}
+      
 
       <Card>
-        {/* <UserTableToolbar
-          numSelected={table.selected.length}
-          filterName={filterName}
-          onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setFilterName(event.target.value);
-            table.onResetPage();
-          }}
-        /> */}
+        
 
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>

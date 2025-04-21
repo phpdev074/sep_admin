@@ -61,13 +61,14 @@ type UserTableRowProps = {
   row: UserProps;
   selected: boolean;
   onSelectRow: () => void;
+  onDelete: (userId: string) => void;
 };
 
 
 
 
 
-export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) {
+export function UserTableRow({ row, selected, onSelectRow,onDelete }: UserTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [openDetailsModal, setOpenDetailsModal] = useState(false);
 
@@ -80,16 +81,27 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
   }, []);
 
   const handleDelete = useCallback(async (id: string) => {
-          const confirmed = window.confirm("Are you sure you want to delete ?")
-          if (confirmed) {
-              const response = await api.delete('/api/deleteAccount',{
-                data: { id }
-            });
-              
-              
-          }
-          setOpenPopover(null);
-      }, []);
+    const confirmed = window.confirm("Are you sure you want to delete this user?");
+    
+    if (confirmed) {
+      try {
+        const response = await api.delete('/api/deleteAccount', {
+          data: { id }
+        });
+  
+        
+        if (response.status === 200) {
+          onDelete(id);  
+          toast.success('User deleted successfully');
+        } else {
+          toast.error('Failed to delete user');
+        }
+      } catch (error) {
+        toast.error('Error deleting user');
+      }
+    }
+  }, [onDelete]);
+  
 
   const handleBlock = useCallback(async (id: string) => {
     const confirmed = window.confirm("Are you sure you want to block this user")

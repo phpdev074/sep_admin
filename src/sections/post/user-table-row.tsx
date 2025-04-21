@@ -35,6 +35,7 @@ interface Post {
   content: string;
   files: File[];
   fileType: string;
+  country: string;
   createdAt: string;
   image: string;
   updatedAt: string;
@@ -133,23 +134,12 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           {/* Displaying Image */}
           <Box display="flex" justifyContent="center">
             <Avatar
-              src={selectedImage || `${API_BASE_URL}${row.files?.[0]?.file}`}  // Display selected image or original image
+              src={`${API_BASE_URL}${row.files?.[0]?.file}`}
               alt="Post Image"
               variant="rounded"
               sx={{ width: 120, height: 120 }}
             />
           </Box>
-
-          {/* File Input to change image */}
-          <Button variant="outlined" component="label">
-            Change Image
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              hidden
-            />
-          </Button>
 
           {/* Editable Content */}
           <TextField
@@ -162,21 +152,60 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
             variant="outlined"
           />
 
-          {/* Created At Information */}
+          {/* Static Info Fields */}
+          {/* <Box>
+            <Typography variant="body2" color="text.secondary">Category ID:</Typography>
+            <Typography variant="body1">{row.categoryId || 'N/A'}</Typography>
+          </Box> */}
+
           <Box>
-            <Typography variant="body2" color="text.secondary">
-              Created At:
-            </Typography>
+            <Typography variant="body2" color="text.secondary">Country:</Typography>
+            <Typography variant="body1">{row.country || 'N/A'}</Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="body2" color="text.secondary">File Type:</Typography>
+            <Typography variant="body1">{row.fileType || 'N/A'}</Typography>
+          </Box>
+
+          {/* <Box>
+            <Typography variant="body2" color="text.secondary">Video Count:</Typography>
+            <Typography variant="body1">{row.videoCount}</Typography>
+          </Box> */}
+
+          {/* <Box>
+            <Typography variant="body2" color="text.secondary">User ID:</Typography>
+            <Typography variant="body1">{row.userId || 'N/A'}</Typography>
+          </Box> */}
+
+          <Box>
+            <Typography variant="body2" color="text.secondary">Location:</Typography>
             <Typography variant="body1">
-              {format(new Date(row.createdAt), 'PPpp')}
+              Longitude: {row.location?.coordinates?.[0] ?? 'N/A'}, Latitude: {row.location?.coordinates?.[1] ?? 'N/A'}
             </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="body2" color="text.secondary">Created At:</Typography>
+            <Typography variant="body1">{format(new Date(row.createdAt), 'PP')}
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="body2" color="text.secondary">Updated At:</Typography>
+            <Typography variant="body1">{format(new Date(row.updatedAt), 'PP')}</Typography>
           </Box>
         </Box>
       </DialogContent>
 
       <DialogActions>
         <Button onClick={handleCloseEditModal}>Cancel</Button>
-        <Button variant="contained" color="primary" onClick={handleSubmitEdit}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmitEdit}
+          disabled={editContent === row.content}
+        >
           Save
         </Button>
       </DialogActions>
@@ -197,7 +226,8 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
 
         <TableCell>{row.content}</TableCell>
 
-        <TableCell>{format(new Date(row.createdAt), 'PPpp')}</TableCell>
+        <TableCell>{format(new Date(row.createdAt), 'PP')}
+        </TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>

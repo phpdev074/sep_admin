@@ -32,7 +32,8 @@ import type { UserProps } from '../user-table-row';
 // ----------------------------------------------------------------------
 
 export function UserView() {
-  const [userData,setUserData] = useState([])
+  const [userData, setUserData] = useState<UserProps[]>([]);
+  const [users, setUsers] = useState<UserProps[]>([]);
   const fetchUsers = async () => {
     const response = await api.get('/admin/getAllUsersAdmin'); 
     
@@ -67,6 +68,11 @@ export function UserView() {
     });
     
     const notFound = !dataFiltered.length && !!filterName;
+
+    const handleDelete = (userId: string) => {
+      setUserData(prevUsers => prevUsers.filter(user => user._id !== userId));
+    };
+    
 
     
 
@@ -120,6 +126,7 @@ export function UserView() {
                       
                       selected={table.selected.includes(row._id)}
                       onSelectRow={() => table.onSelectRow(row._id)}
+                      onDelete={handleDelete}
                     />
                   ))}
 

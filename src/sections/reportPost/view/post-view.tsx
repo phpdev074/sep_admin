@@ -8,6 +8,9 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+
 import { api } from 'src/api/url';
 import { useQuery } from '@tanstack/react-query';
 
@@ -134,28 +137,45 @@ export function ReportPostView() {
                 ]}
               />
               <TableBody>
-                {userData
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
-                  .map((row:any) => (
-                    <UserTableRow
-                      key={row?._id}
-                      row={row}
-                      selected={table.selected.includes(row?._id)}
-                      onSelectRow={() => table.onSelectRow(row?._id)}
-                      onDeletePost={handleRemovePost}
-                    />
-                  ))}
+  {userData.length === 0 && !notFound ? (
+    <TableRow>
+      <TableCell colSpan={12} align="center">
+        No users found.
+      </TableCell>
+    </TableRow>
+  ) : (
+    <>
+      {userData
+        .slice(
+          table.page * table.rowsPerPage,
+          table.page * table.rowsPerPage + table.rowsPerPage
+        )
+        .map((row: any) => (
+          <UserTableRow
+            key={row?._id}
+            row={row}
+            selected={table.selected.includes(row?._id)}
+            onSelectRow={() => table.onSelectRow(row?._id)}
+            onDeletePost={handleRemovePost}
+          />
+        ))}
 
-                <TableEmptyRows
-                  height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
-                />
+      <TableEmptyRows
+        height={68}
+        emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+      />
+    </>
+  )}
 
-                {notFound && <TableNoData searchQuery={filterName} />}
-              </TableBody>
+  {notFound && (
+    <TableRow>
+      <TableCell colSpan={12} align="center">
+        <TableNoData searchQuery={filterName} />
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
+
             </Table>
           </TableContainer>
         </Scrollbar>
