@@ -24,6 +24,11 @@ export const navData = [
     icon: icon('ic-block'),
   },
   {
+    title: 'Deleted Users',
+    path: '/deletedUser',
+    icon: icon('ic-block'),
+  },
+  {
     title: 'Post',
     path: '/post',
     icon: icon('ic-post'),

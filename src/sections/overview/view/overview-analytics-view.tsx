@@ -33,37 +33,37 @@ export function OverviewAnalyticsView() {
 
 
   const fetchUsers = async () => {
-    const response = await api.get('/admin/getAllUsers'); // Adjust API endpoint as needed
+    const response = await api.get('/admin/getAllUsers'); 
     return response.data;
   }
   
   const fetchActiveUsers = async () => {
-    const response = await api.get('/admin/getActiveUsers'); // Adjust API endpoint as needed
+    const response = await api.get('/admin/getActiveUsers');
     // return response.data;
     setActiveUser(response?.data?.data?.totalActiveUsers)
   }
 
   const fetchBlockUsers = async () => {
-    const response = await api.get('/admin/getBlockUsers'); // Adjust API endpoint as needed
+    const response = await api.get('/admin/getBlockUsers'); 
     // return response.data;
     setBlockUsers(response?.data?.data?.totalBlockUsers)
 
   }
   const fetchPost = async () => {
-    const response = await api.get('/admin/getAllPost'); // Adjust API endpoint as needed
+    const response = await api.get('/admin/getAllPost'); 
     return response.data;
   }
 
   const fetchMonthlyUserData = async () => {
-    const response = await api.get('/admin/getUsersByMonth'); // Make sure your API endpoint matches
-    return response.data; // Expected format: [{ month: 1, userCount: 30 }, { month: 2, userCount: 50 }, ...]
+    const response = await api.get('/admin/getUsersByMonth'); 
+    return response.data; 
   };
 
 
   const { data: getAllUsers, error, isLoading } = useQuery({
     queryKey: ['/admin/getAllUsers'],
     queryFn: fetchUsers,
-    staleTime: 0, // Cache for 60 seconds
+    staleTime: 0, 
   });
   const { data: activeUsers, error: activeUsersError, isLoading: activeUsersLoading } = useQuery({
     queryKey: ['admin/getActiveUsers'],
@@ -83,7 +83,7 @@ export function OverviewAnalyticsView() {
   const { data: monthlyUsers, error: monthlyUsersError, isLoading: monthlyUsersLoading} = useQuery({
     queryKey: ['admin/getUsersByMonth'],
     queryFn: fetchMonthlyUserData,
-    staleTime: 60000, // Cache for 60 seconds
+    staleTime: 60000, 
   });
 
   useEffect(() => {

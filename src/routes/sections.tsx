@@ -16,6 +16,7 @@ export const HomePage = lazy(() => import('src/pages/home'));
 export const BlogPage = lazy(() => import('src/pages/blog'));
 export const UserPage = lazy(() => import('src/pages/user'));
 export const PostPage = lazy(() => import('src/pages/post'));
+export const DeleteView = lazy(() => import('src/pages/deletedUser'))
 // export const BlockedUserView = lazy(() => import('src/pages/blockedUser')); 
 // export const Post = lazy(() => import('src/pages/post'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
@@ -60,6 +61,7 @@ export function Router() {
         { path:"dashboard", element: <HomePage />,  },
         { path: 'user', element: <UserPage /> },
         { path: 'blockedUser', element: <BlockView /> },
+        { path: 'deletedUser', element:<DeleteView/> },
         {path:'post',element:<PostPage />},
         {path:'reportpost',element:<ReportPostView />},
         { path: 'products', element: <ProductsPage /> },
