@@ -1,4 +1,4 @@
-
+/* eslint-disable */
 
 import { useState, useCallback } from 'react';
 
@@ -47,6 +47,18 @@ interface Post {
     type: string;
     coordinates: [number, number];
   };
+  reportedPostId: {
+    content: string;
+    files: File[];
+  };
+  reporterId: {
+    name: string;
+  }
+  reportedUserId: {
+    name: string;
+  }
+  details: string;
+  timestamp: string;
 }
 
 export type UserProps = {
@@ -77,19 +89,20 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
 
   const handleCloseEditModal = () => setOpenEditModal(false);
   const handleOpenEditModal = () => setOpenEditModal(true);
+  const [openImageModal, setOpenImageModal] = useState(false);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditContent(e.target.value);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string); 
-      };
-      reader.readAsDataURL(file); 
-    }
-  };
+  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files ? e.target.files[0] : null;
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setSelectedImage(reader.result as string); 
+  //     };
+  //     reader.readAsDataURL(file); 
+  //   }
+  // };
 
   const handleSubmitEdit = () => {
     
@@ -120,6 +133,16 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
       }
     }
   }, [onDeletePost]);
+
+  const handleOpenImageModal = (src:any) => {
+    setSelectedImage(src);
+    setOpenImageModal(true);
+  };
+
+  const handleCloseImageModal = () => {
+    setOpenImageModal(false);
+    setSelectedImage(null);
+  };
   
 
 
@@ -127,62 +150,81 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
     <>
 
 <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
-      <DialogTitle>Edit Post</DialogTitle>
+  <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
+    🚩 Reported Post
+  </DialogTitle>
 
-      <DialogContent dividers>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+  <DialogContent dividers>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, px: 2, py: 3 }}>
 
-          {/* Displaying Image */}
-          <Box display="flex" justifyContent="center">
-            <Avatar
-              src={selectedImage || `${API_BASE_URL}${row.files?.[0]?.file}`}  
-              alt="Post Image"
-              variant="rounded"
-              sx={{ width: 120, height: 120 }}
-            />
-          </Box>
+      {/* Image */}
+      <Avatar
+        src={`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`}
+        alt="Reported Post Image"
+        variant="rounded"
+        sx={{
+          width: 140,
+          height: 140,
+          mx: 'auto',
+          boxShadow: 2,
+          border: '2px solid #d32f2f',
+          cursor: 'pointer',
+                transition: 'transform 0.4s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.3)',
+                  zIndex: 1,
+                },
+        }}
+      />
 
-          {/* File Input to change image */}
-          <Button variant="outlined" component="label">
-            Change Image
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              hidden
-            />
-          </Button>
+      {/* Post Content */}
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold">Content:</Typography>
+        <Typography>{row.reportedPostId?.content || 'N/A'}</Typography>
+      </Box>
 
-          {/* Editable Content */}
-          <TextField
-            label="Content"
-            multiline
-            rows={4}
-            value={editContent}
-            onChange={handleContentChange}
-            fullWidth
-            variant="outlined"
-          />
+      {/* Reason */}
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold">Reason:</Typography>
+        <Typography>{row.reason || 'N/A'}</Typography>
+      </Box>
 
-          {/* Created At Information */}
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              Created At:
-            </Typography>
-            {/* <Typography variant="body1">
-              {format(new Date(row.createdAt), 'PPpp')}
-            </Typography> */}
-          </Box>
-        </Box>
-      </DialogContent>
+      {/* Details */}
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold">Details:</Typography>
+        <Typography>{row.details || 'N/A'}</Typography>
+      </Box>
 
-      <DialogActions>
-        <Button onClick={handleCloseEditModal}>Cancel</Button>
-        <Button variant="contained" color="primary" onClick={handleSubmitEdit}>
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
+      {/* Reporter */}
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold">Reporter Name:</Typography>
+        <Typography>{row.reporterId.name}</Typography>
+      </Box>
+
+      {/* Reported User */}
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold">Reported User Name:</Typography>
+        <Typography>{row.reportedUserId.name}</Typography>
+      </Box>
+
+      {/* Created At */}
+      <Box>
+        <Typography variant="subtitle1" fontWeight="bold">Reported Time:</Typography>
+        <Typography>
+          {row.timestamp ? format(new Date(row.timestamp), 'PPp') : 'N/A'}
+        </Typography>
+      </Box>
+    </Box>
+  </DialogContent>
+
+  <DialogActions sx={{ justifyContent: 'center', py: 2 }}>
+    <Button onClick={handleCloseEditModal} variant="outlined" color="primary">
+      Close
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
 
 
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
@@ -190,18 +232,46 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
 
         </TableCell>
 
-        <TableCell component="th" scope="row">
+        {/* <TableCell component="th" scope="row">
           <Box gap={2} display="flex" alignItems="center">
             <Avatar src={`${API_BASE_URL}${row.files?.[0]?.file}`} />
 
           </Box>
-        </TableCell>
+        </TableCell> */}
+
+        <TableCell component="th" scope="row">
+            <Box gap={2} display="flex" alignItems="center">
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                overflow: 'visible', 
+                cursor: 'pointer',
+                transition: 'transform 0.4s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.3)',
+                  zIndex: 1,
+                },
+              }}
+              onClick={() => handleOpenImageModal(`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`)}
+            >
+                 <Avatar
+                src={`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`} 
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+              </Box>
+            </Box>
+          </TableCell>
 
         {/* <TableCell>{row.reason}</TableCell> */}
 
         <TableCell>{row.reason}</TableCell>
 
-        <TableCell>{row.count}</TableCell>
+        <TableCell>{format(new Date(row.timestamp), 'PP')}</TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>
@@ -244,6 +314,22 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           </MenuItem>
         </MenuList>
       </Popover>
+      <Dialog open={openImageModal} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
+              <DialogContent sx={{ p: 0, bgcolor: 'black' }}>
+                <img
+                  src={selectedImage || undefined}
+                  alt="Post Preview"
+                  style={{
+                    width: '100%',
+                    maxHeight: '80vh',
+                    objectFit: 'contain',
+                    display: 'block',
+                    margin: 'auto',
+                  }}
+                  onClick={handleCloseImageModal}
+                />
+              </DialogContent>
+      </Dialog>
     </>
   );
 }

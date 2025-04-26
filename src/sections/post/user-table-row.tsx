@@ -1,4 +1,4 @@
-
+/* eslint-disable */
 
 import { useState, useCallback } from 'react';
 
@@ -14,6 +14,8 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import Grid from '@mui/material/Unstable_Grid2';
+import { Icon } from '@iconify/react';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -28,10 +30,10 @@ interface File {
   _id: string;
 }
 
-interface Post {
+ interface Post {
   _id: string;
-  userId: string;
-  categoryId: string;
+  // userId: string;
+  // categoryId: string;
   content: string;
   files: File[];
   fileType: string;
@@ -46,6 +48,21 @@ interface Post {
     type: string;
     coordinates: [number, number];
   };
+  videoCount: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  watchedUsers: string;
+  userId: {
+    _id: string;
+    name: string;
+    username: string;
+    email: string;
+  };
+  categoryId: {
+    name: string;
+  };
+  
 }
 
 export type UserProps = {
@@ -59,6 +76,12 @@ export type UserProps = {
   // isVerified: boolean; 
   content: string;
   createdAt: string;
+  userId: {
+    _id: string;
+    name: string;
+    username: string;
+    email: string;
+  };
 };
 
 type UserTableRowProps = {
@@ -74,21 +97,49 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
   const [editContent, setEditContent] = useState(row.content);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const handleCloseEditModal = () => setOpenEditModal(false);
+  const [openImageModal, setOpenImageModal] = useState(false);
+
+  const handleCloseEditModal = () => {
+    handleClosePopover();
+    setOpenEditModal(false) 
+  } ;
   const handleOpenEditModal = () => setOpenEditModal(true);
+
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState(null);
+
+  const handleImageChange = (e:any) => {
+    const file = e.target.files[0]; 
+    if (file) {
+      setNewImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+    }
+  };  
+
+const handleOpenImageModal = (src:any) => {
+  setSelectedImage(src);
+  setOpenImageModal(true);
+};
+
+const handleCloseImageModal = () => {
+  setOpenImageModal(false);
+  setSelectedImage(null);
+};
+
 
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditContent(e.target.value);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string); 
-      };
-      reader.readAsDataURL(file); 
-    }
-  };
+  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files ? e.target.files[0] : null;
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setSelectedImage(reader.result as string); 
+  //     };
+  //     reader.readAsDataURL(file); 
+  //   }
+  // };
 
   const handleSubmitEdit = () => {
     
@@ -125,116 +176,317 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
   return (
     <>
 
+{/* <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
+  <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
+    📝 Edit Post
+  </DialogTitle>
+
+  <DialogContent
+    dividers
+    sx={{
+      overflowY: 'auto',
+      maxHeight: '600px',
+      '&::-webkit-scrollbar': { display: 'none' },
+      scrollbarWidth: 'none',
+      px: 3,
+      py: 4,
+    }}
+  >
+    
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+      <input
+        type="file"
+        accept="image/*"
+        id="post-image-upload"
+        style={{ display: 'none' }}
+        onChange={handleImageChange}
+      />
+      <label htmlFor="post-image-upload" style={{ cursor: 'pointer' }}>
+        <Avatar
+          src={previewImage || `${API_BASE_URL}${row.files?.[0]?.file}`}
+          alt="Post Image"
+          variant="rounded"
+          sx={{
+            width: 160,
+            height: 160,
+            mb: 1,
+            border: '2px dashed #1976d2',
+            boxShadow: 2,
+            transition: '0.3s',
+            '&:hover': {
+              opacity: 0.8,
+            },
+          }}
+        />
+      </label>
+      <Typography variant="caption" color="text.secondary">
+        Click image to change
+      </Typography>
+    </Box>
+
+    
+    <TextField
+      label="Content"
+      multiline
+      rows={3}
+      value={editContent}
+      onChange={handleContentChange}
+      fullWidth
+      variant="outlined"
+      sx={{ mb: 3 }}
+    />
+
+    
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 2fr',
+        gap: 2,
+        backgroundColor: '#f5f5f5',
+        borderRadius: 2,
+        p: 3,
+        boxShadow: 1,
+      }}
+    >
+      {[
+        { icon: 'mdi:tag-outline', label: 'Category', value: row.categoryId.name },
+        { icon: 'mdi:earth', label: 'Country', value: row.country || 'N/A' },
+        // { icon: 'mdi:file-outline', label: 'File Type', value: row.fileType },
+        { icon: 'mdi:account', label: 'Name', value: row.userId.name || 'N/A' },
+        // { icon: 'mdi:video-outline', label: 'Video Count', value: row.videoCount ?? 0 },
+        // {
+        //   icon: 'mdi:map-marker',
+        //   label: 'Location',
+        //   value: `Lng: ${row.location?.coordinates?.[0] ?? 'N/A'}, Lat: ${row.location?.coordinates?.[1] ?? 'N/A'}`,
+        // },
+        row.startTime && {
+          icon: 'mdi:clock-start',
+          label: 'Start Time',
+          value: format(new Date(row.startTime), 'PPpp'),
+        },
+        row.endTime && {
+          icon: 'mdi:clock-end',
+          label: 'End Time',
+          value: format(new Date(row.endTime), 'PPpp'),
+        },
+        row.duration && {
+          icon: 'mdi:timer-outline',
+          label: 'Duration',
+          value: `${row.duration} seconds`,
+        },
+        {
+          icon: 'mdi:eye-outline',
+          label: 'Watched Users',
+          value: row.watchedUsers?.length ?? 0,
+        },
+        {
+          icon: 'mdi:thumb-up-outline',
+          label: 'Votes',
+          value: row.votes?.length ?? 0,
+        },
+        {
+          icon: 'mdi:calendar-plus',
+          label: 'Created At',
+          value: format(new Date(row.createdAt), 'PP'),
+        },
+        // {
+        //   icon: 'mdi:calendar-edit',
+        //   label: 'Updated At',
+        //   value: format(new Date(row.updatedAt), 'PP'),
+        // },
+      ]
+      .filter((field): field is { icon: string; label: string; value: any } => Boolean(field))  
+        .map((field, idx) => (
+          <Box key={idx} display="flex" alignItems="center" gap={1}>
+            <Iconify icon={field.icon} width={20} color="text.secondary" />
+            <Typography variant="subtitle2" color="text.secondary">
+              {field.label}:
+            </Typography>
+            <Typography variant="body2" color="text.primary" sx={{ gridColumn: 'span 2' }}>
+              {field.value}
+            </Typography>
+          </Box>
+        ))}
+    </Box>
+  </DialogContent>
+
+  <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+    <Button onClick={handleCloseEditModal} color="primary" variant="outlined">
+      Cancel
+    </Button>
+    <Button
+      variant="contained"
+      color="success"
+      onClick={handleSubmitEdit}
+      disabled={editContent === row.content && !newImageFile}
+    >
+      Save
+    </Button>
+  </DialogActions>
+</Dialog> */}
+
 <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
-      <DialogTitle>Edit Post</DialogTitle>
+  <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
+    👁️ View Post
+  </DialogTitle>
 
-      <DialogContent dividers>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+  <DialogContent
+    dividers
+    sx={{
+      overflowY: 'auto',
+      maxHeight: '600px',
+      '&::-webkit-scrollbar': { display: 'none' },
+      scrollbarWidth: 'none',
+      px: 3,
+      py: 4,
+    }}
+  >
+    {/* Display Image */}
+    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+      <Avatar
+        src={`${API_BASE_URL}${row.files?.[0]?.file}`}
+        alt="Post Image"
+        variant="rounded"
+        sx={{
+          width: 160,
+          height: 160,
+          boxShadow: 2,
+          border: '2px solid #1976d2',
+          cursor: 'pointer',
+                transition: 'transform 0.4s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.3)',
+                  zIndex: 1,
+                },
+        }}
+      />
+    </Box>
 
-          {/* Displaying Image */}
-          <Box display="flex" justifyContent="center">
-            <Avatar
-              src={`${API_BASE_URL}${row.files?.[0]?.file}`}
-              alt="Post Image"
-              variant="rounded"
-              sx={{ width: 120, height: 120 }}
-            />
-          </Box>
+    {/* Content Display */}
+    <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+      Content:
+    </Typography>
+    <Typography variant="body1" mb={3}>
+      {row.content || 'N/A'}
+    </Typography>
 
-          {/* Editable Content */}
-          <TextField
-            label="Content"
-            multiline
-            rows={4}
-            value={editContent}
-            onChange={handleContentChange}
-            fullWidth
-            variant="outlined"
-          />
-
-          {/* Static Info Fields */}
-          {/* <Box>
-            <Typography variant="body2" color="text.secondary">Category ID:</Typography>
-            <Typography variant="body1">{row.categoryId || 'N/A'}</Typography>
-          </Box> */}
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">Country:</Typography>
-            <Typography variant="body1">{row.country || 'N/A'}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">File Type:</Typography>
-            <Typography variant="body1">{row.fileType || 'N/A'}</Typography>
-          </Box>
-
-          {/* <Box>
-            <Typography variant="body2" color="text.secondary">Video Count:</Typography>
-            <Typography variant="body1">{row.videoCount}</Typography>
-          </Box> */}
-
-          {/* <Box>
-            <Typography variant="body2" color="text.secondary">User ID:</Typography>
-            <Typography variant="body1">{row.userId || 'N/A'}</Typography>
-          </Box> */}
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">Location:</Typography>
-            <Typography variant="body1">
-              Longitude: {row.location?.coordinates?.[0] ?? 'N/A'}, Latitude: {row.location?.coordinates?.[1] ?? 'N/A'}
+    {/* Info Grid */}
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 2fr',
+        gap: 2,
+        backgroundColor: '#f5f5f5',
+        borderRadius: 2,
+        p: 3,
+        boxShadow: 1,
+      }}
+    >
+      {[
+        { icon: 'mdi:tag-outline', label: 'Category', value: row.categoryId?.name || row.categoryId },
+        { icon: 'mdi:earth', label: 'Country', value: row.country && row.country.trim() !== '' ? row.country : 'N/A' },
+        { icon: 'mdi:account', label: 'Name', value: row.userId?.name || 'N/A' },
+        row.startTime && {
+          icon: 'mdi:clock-start',
+          label: 'Start Time',
+          value: format(new Date(row.startTime), 'PPpp'),
+        },
+        row.endTime && {
+          icon: 'mdi:clock-end',
+          label: 'End Time',
+          value: format(new Date(row.endTime), 'PPpp'),
+        },
+        row.duration && {
+          icon: 'mdi:timer-outline',
+          label: 'Duration',
+          value: `${row.duration} seconds`,
+        },
+        {
+          icon: 'mdi:eye-outline',
+          label: 'Watched Users',
+          value: row.watchedUsers?.length ?? 0,
+        },
+        {
+          icon: 'mdi:thumb-up-outline',
+          label: 'Votes',
+          value: row.votes?.length ?? 0,
+        },
+        {
+          icon: 'mdi:calendar-plus',
+          label: 'Created At',
+          value: format(new Date(row.createdAt), 'PP'),
+        },
+      ]
+        .filter((field): field is { icon: string; label: string; value: any } => Boolean(field))
+        .map((field, idx) => (
+          <Box key={idx} display="flex" alignItems="center" gap={1}>
+            <Iconify icon={field.icon} width={20} color="text.secondary" />
+            <Typography variant="subtitle2" color="text.secondary">
+              {field.label}:
+            </Typography>
+            <Typography variant="body2" color="text.primary" sx={{ gridColumn: 'span 2' }}>
+              {field.value}
             </Typography>
           </Box>
+        ))}
+    </Box>
+  </DialogContent>
 
-          <Box>
-            <Typography variant="body2" color="text.secondary">Created At:</Typography>
-            <Typography variant="body1">{format(new Date(row.createdAt), 'PP')}
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">Updated At:</Typography>
-            <Typography variant="body1">{format(new Date(row.updatedAt), 'PP')}</Typography>
-          </Box>
-        </Box>
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={handleCloseEditModal}>Cancel</Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmitEdit}
-          disabled={editContent === row.content}
-        >
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
+  <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+    <Button onClick={handleCloseEditModal} color="primary" variant="outlined">
+      Close
+    </Button>
+  </DialogActions>
+</Dialog>
 
 
-      <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-         <TableCell padding="checkbox">    {/* eslint-disable-line */}
 
-        </TableCell>
 
-        <TableCell component="th" scope="row">
-          <Box gap={2} display="flex" alignItems="center">
-            <Avatar src={`${API_BASE_URL}${row.files?.[0]?.file}`} />
 
-          </Box>
-        </TableCell>
 
-        <TableCell>{row.content}</TableCell>
 
-        <TableCell>{format(new Date(row.createdAt), 'PP')}
-        </TableCell>
+<TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
+  <TableCell padding="checkbox">{/* eslint-disable-line */}</TableCell>
 
-        <TableCell align="right">
-          <IconButton onClick={handleOpenPopover}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-        </TableCell>
-      </TableRow>
+  <TableCell component="th" scope="row">
+    <Box gap={2} display="flex" alignItems="center">
+    <Box
+      sx={{
+        width: 40,
+        height: 40,
+        borderRadius: '50%',
+        overflow: 'visible', 
+        cursor: 'pointer',
+        transition: 'transform 0.4s ease-in-out',
+        '&:hover': {
+          transform: 'scale(1.3)',
+          zIndex: 1,
+        },
+      }}
+      onClick={() => handleOpenImageModal(`${API_BASE_URL}${row.files?.[0]?.file}`)}
+    >
+         <Avatar
+        src={`${API_BASE_URL}${row.files?.[0]?.file}`}
+        sx={{
+          width: '100%',
+          height: '100%',
+        }}
+      />
+      </Box>
+    </Box>
+  </TableCell>
+
+  <TableCell>{row.content || 'N/A'}</TableCell>
+
+  <TableCell>{format(new Date(row.createdAt), 'PP')}</TableCell>
+
+  <TableCell align="right">
+    <IconButton onClick={handleOpenPopover}>
+      <Iconify icon="eva:more-vertical-fill" />
+    </IconButton>
+  </TableCell>
+</TableRow>
+
 
       <Popover
         open={!!openPopover}
@@ -260,8 +512,8 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           }}
         >
           <MenuItem onClick={handleOpenEditModal}>
-            {/* <Iconify icon="solar:pen-bold" /> */}
-            Edit
+          
+            View Details
           </MenuItem>
 
           <MenuItem onClick={() => handleDelete(row?._id)} sx={{ color: 'error.main' }}>
@@ -270,6 +522,22 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           </MenuItem>
         </MenuList>
       </Popover>
+      <Dialog open={openImageModal} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
+        <DialogContent sx={{ p: 0, bgcolor: 'black' }}>
+          <img
+            src={selectedImage || undefined}
+            alt="Post Preview"
+            style={{
+              width: '100%',
+              maxHeight: '80vh',
+              objectFit: 'contain',
+              display: 'block',
+              margin: 'auto',
+            }}
+            onClick={handleCloseImageModal}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

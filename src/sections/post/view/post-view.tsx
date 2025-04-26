@@ -68,7 +68,7 @@ export function PostView() {
     // return response.data;
   }
     const { data: getAllPost, error, isLoading } = useQuery({
-      queryKey: ['admin/getAllPost'],
+      queryKey: ['/admin/getAllPost'],
       queryFn: fetchUsers,  
       // staleTime: 0, 
     });
@@ -88,7 +88,9 @@ export function PostView() {
   const dataFiltered: UserProps[] = applyFilter({
 
     // inputData: _users,//-
-    inputData: userData,//+
+    // inputData: userData,//+
+    inputData: userData as unknown as UserProps[],
+
 
     comparator: getComparator(table.order, table.orderBy),
     filterName,

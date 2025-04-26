@@ -98,10 +98,7 @@ export function UserView() {
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
-                  table.onSelectAllRows(
-                    checked,
-                    _users.map((user) => user.id)
-                  )
+                  table.onSelectAllRows(checked, _users.map((user) => user.id))
                 }
                 headLabel={[
                   { id: 'image', label: 'Image' },
@@ -118,8 +115,7 @@ export function UserView() {
                   .slice(
                     table.page * table.rowsPerPage,
                     table.page * table.rowsPerPage + table.rowsPerPage
-                  )
-                  .map((row:any) => (
+                  ).map((row:any) => (
                     <UserTableRow
                       key={row._id}
                       row={row}
