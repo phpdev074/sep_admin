@@ -468,8 +468,8 @@ const handleCloseImageModal = () => {
          <Avatar
         src={`${API_BASE_URL}${row.files?.[0]?.file}`}
         sx={{
-          width: '100%',
-          height: '100%',
+          width: '120%',
+          height: '120%',
         }}
       />
       </Box>
@@ -477,6 +477,8 @@ const handleCloseImageModal = () => {
   </TableCell>
 
   <TableCell>{row.content || 'N/A'}</TableCell>
+
+  <TableCell>{row.userId.name || 'N/A'}</TableCell>
 
   <TableCell>{format(new Date(row.createdAt), 'PP')}</TableCell>
 

@@ -61,10 +61,13 @@ interface Post {
 
 export function PostView() {
   const [userData, setUserData] = useState<Post[]>([]);
+  const [total, setTotal] = useState<number>(0);
 
   const fetchUsers = async () => {
     const response = await api.get('/admin/getAllPost'); 
-    setUserData(response?.data?.data)
+    setUserData(response?.data?.data?.response)
+    setTotal(response?.data?.data?.total)
+
     // return response.data;
   }
     const { data: getAllPost, error, isLoading } = useQuery({
@@ -127,6 +130,7 @@ export function PostView() {
                 headLabel={[
                   { id: 'files', label: 'Image' },
                   { id: 'content', label: 'Content' },
+                  { id: 'username', label: 'Username' },
                   { id: 'createdAt', label: 'Create Time' },
                   // { id: 'email', label: 'Email', align: 'center' },
                   // { id: 'status', label: 'Status' },
@@ -163,7 +167,7 @@ export function PostView() {
         <TablePagination
           component="div"
           page={table.page}
-          count={_users.length}
+          count={total}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
