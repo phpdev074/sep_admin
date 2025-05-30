@@ -65,6 +65,7 @@ export function PostView() {
 
   const fetchUsers = async () => {
     const response = await api.get('/admin/getAllPost'); 
+    console.log(response?.data?.data?.response)
     setUserData(response?.data?.data?.response)
     setTotal(response?.data?.data?.total)
 
@@ -75,6 +76,7 @@ export function PostView() {
       queryFn: fetchUsers,  
       // staleTime: 0, 
     });
+
   const table = useTable();
     
   const [filterName, setFilterName] = useState('');
@@ -129,6 +131,7 @@ export function PostView() {
                 }
                 headLabel={[
                   { id: 'files', label: 'Image' },
+                  { id: 'type', label: 'Type' },
                   { id: 'content', label: 'Content' },
                   { id: 'username', label: 'Username' },
                   { id: 'createdAt', label: 'Create Time' },

@@ -74,6 +74,7 @@ export type UserProps = {
   // company: string;
   // avatarUrl: string;
   // isVerified: boolean; 
+  fileType: string;
   content: string;
   createdAt: string;
   userId: {
@@ -476,7 +477,9 @@ const handleCloseImageModal = () => {
     </Box>
   </TableCell>
 
-  <TableCell>{row.content || 'N/A'}</TableCell>
+  <TableCell>{row.fileType || 'N/A'}</TableCell>
+
+  <TableCell>{row.content.slice(0, 30) || 'N/A'}</TableCell>
 
   <TableCell>{row.userId.name || 'N/A'}</TableCell>
 
