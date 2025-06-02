@@ -143,8 +143,8 @@ export function UserTableRow({ row, selected, onSelectRow,onDelete }: UserTableR
   
   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
     <Avatar
-      alt={row.name}
-      src={row.image ? `${API_BASE_URL}${row.image}` : undefined}
+      alt={row?.name}
+      src={row?.image ? `${API_BASE_URL}${row?.image}` : undefined}
       sx={{
         width: 100,
         height: 100,
@@ -154,10 +154,10 @@ export function UserTableRow({ row, selected, onSelectRow,onDelete }: UserTableR
       }}
     />
     <Typography variant="h6" fontWeight="medium">
-      {row.name}
+      {row?.name}
     </Typography>
     <Typography variant="body2" color="text.secondary">
-      {row.email}
+      {row?.email}
     </Typography>
   </Box>
 

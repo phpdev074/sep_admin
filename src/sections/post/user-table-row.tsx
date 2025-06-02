@@ -74,7 +74,7 @@ export type UserProps = {
   // company: string;
   // avatarUrl: string;
   // isVerified: boolean; 
-  fileType: string;
+  fileType:string;
   content: string;
   createdAt: string;
   userId: {
@@ -344,23 +344,52 @@ const handleCloseImageModal = () => {
   >
     {/* Display Image */}
     <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-      <Avatar
-        src={`${API_BASE_URL}${row.files?.[0]?.file}`}
-        alt="Post Image"
-        variant="rounded"
-        sx={{
-          width: 160,
-          height: 160,
-          boxShadow: 2,
-          border: '2px solid #1976d2',
-          cursor: 'pointer',
-                transition: 'transform 0.4s ease-in-out',
-                '&:hover': {
-                  transform: 'scale(1.3)',
-                  zIndex: 1,
-                },
-        }}
-      />
+      {row?.files?.[0]?.type === 'video' ? (
+        <Box
+          component="video"
+          src={`${API_BASE_URL}${row.files?.[0]?.file}`}
+          controls
+          preload="metadata"
+          onError={(e) => {
+            const target = e.target as HTMLVideoElement;
+            target.style.display = 'none';
+          }}
+          sx={{
+            width: 160,
+            height: 160,
+            borderRadius: 2,
+            boxShadow: 2,
+            border: '2px solid #1976d2',
+            cursor: 'pointer',
+            transition: 'transform 0.4s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.3)',
+              zIndex: 1,
+            },
+            '&::-webkit-media-controls': {
+              display: 'none',
+            },
+          }}
+        />
+      ) : (
+        <Avatar
+          src={`${API_BASE_URL}${row?.files?.[0]?.file}`}
+          alt="Post Image"
+          variant="rounded"
+          sx={{
+            width: 160,
+            height: 160,
+            boxShadow: 2,
+            border: '2px solid #1976d2',
+            cursor: 'pointer',
+            transition: 'transform 0.4s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.3)',
+              zIndex: 1,
+            },
+          }}
+        />
+      )}
     </Box>
 
     {/* Content Display */}
@@ -384,49 +413,49 @@ const handleCloseImageModal = () => {
       }}
     >
       {[
-        { icon: 'mdi:tag-outline', label: 'Category', value: row.categoryId?.name || row.categoryId },
-        { icon: 'mdi:earth', label: 'Country', value: row.country && row.country.trim() !== '' ? row.country : 'N/A' },
-        { icon: 'mdi:account', label: 'Name', value: row.userId?.name || 'N/A' },
+        { icon: 'mdi:tag-outline', label: 'Category', value: row?.categoryId?.name || row?.categoryId },
+        { icon: 'mdi:earth', label: 'Country', value: row?.country && row?.country.trim() !== '' ? row?.country : 'N/A' },
+        { icon: 'mdi:account', label: 'Name', value: row?.userId?.name || 'N/A' },
         row.startTime && {
           icon: 'mdi:clock-start',
           label: 'Start Time',
-          value: format(new Date(row.startTime), 'PPpp'),
+          value: format(new Date(row?.startTime), 'PPpp'),
         },
         row.endTime && {
           icon: 'mdi:clock-end',
           label: 'End Time',
-          value: format(new Date(row.endTime), 'PPpp'),
+          value: format(new Date(row?.endTime), 'PPpp'),
         },
         row.duration && {
           icon: 'mdi:timer-outline',
           label: 'Duration',
-          value: `${row.duration} seconds`,
+          value: `${row?.duration} seconds`,
         },
         {
           icon: 'mdi:eye-outline',
           label: 'Watched Users',
-          value: row.watchedUsers?.length ?? 0,
+          value: row?.watchedUsers?.length ?? 0,
         },
         {
           icon: 'mdi:thumb-up-outline',
           label: 'Votes',
-          value: row.votes?.length ?? 0,
+          value: row?.votes?.length ?? 0,
         },
         {
           icon: 'mdi:calendar-plus',
           label: 'Created At',
-          value: format(new Date(row.createdAt), 'PP'),
+          value: format(new Date(row?.createdAt), 'PP'),
         },
       ]
         .filter((field): field is { icon: string; label: string; value: any } => Boolean(field))
         .map((field, idx) => (
           <Box key={idx} display="flex" alignItems="center" gap={1}>
-            <Iconify icon={field.icon} width={20} color="text.secondary" />
+            <Iconify icon={field?.icon} width={20} color="text.secondary" />
             <Typography variant="subtitle2" color="text.secondary">
-              {field.label}:
+              {field?.label}:
             </Typography>
             <Typography variant="body2" color="text.primary" sx={{ gridColumn: 'span 2' }}>
-              {field.value}
+              {field?.value}
             </Typography>
           </Box>
         ))}
@@ -467,7 +496,7 @@ const handleCloseImageModal = () => {
       onClick={() => handleOpenImageModal(`${API_BASE_URL}${row.files?.[0]?.file}`)}
     >
          <Avatar
-        src={`${API_BASE_URL}${row.files?.[0]?.file}`}
+        src={`${API_BASE_URL}${row?.files?.[0]?.file}`}
         sx={{
           width: '120%',
           height: '120%',
@@ -477,13 +506,13 @@ const handleCloseImageModal = () => {
     </Box>
   </TableCell>
 
-  <TableCell>{row.fileType || 'N/A'}</TableCell>
+  <TableCell>{row?.fileType || 'N/A'}</TableCell>
 
-  <TableCell>{row.content.slice(0, 30) || 'N/A'}</TableCell>
+  <TableCell>{row?.content.slice(0, 30) || 'N/A'}</TableCell>
 
-  <TableCell>{row.userId.name || 'N/A'}</TableCell>
+  <TableCell>{row?.userId?.name || 'N/A'}</TableCell>
 
-  <TableCell>{format(new Date(row.createdAt), 'PP')}</TableCell>
+  <TableCell>{format(new Date(row?.createdAt), 'PP')}</TableCell>
 
   <TableCell align="right">
     <IconButton onClick={handleOpenPopover}>
