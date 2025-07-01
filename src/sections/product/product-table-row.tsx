@@ -1,4 +1,4 @@
-import { useState, useCallback,ChangeEvent } from 'react';
+import { useState, useCallback, ChangeEvent } from 'react';
 
 // import Box from '@mui/material/Box';
 // import Avatar from '@mui/material/Avatar';
@@ -29,278 +29,734 @@ import { Iconify } from 'src/components/iconify';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
-import { api } from 'src/api/url';
-
+import { api, API_BASE_URL } from 'src/api/url';
+import { CircularProgress, Tooltip, Typography } from '@mui/material';
 
 interface Post {
-    _id: string;
-    userId: string;
-    categoryId: string;
-    postReport: string;
-    userReport: string;
-    content: string;
-    files: File[];
-    fileType: string;
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-    options: any[];
-    votes: any[];
-    location: {
-        type: string;
-        coordinates: [number, number];
-    };
-    selected: boolean;
-    onModification:any
+  _id: string;
+  userId: string;
+  categoryId: string;
+  postReport: string;
+  userReport: string;
+  content: string;
+  files: File[];
+  fileType: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  options: any[];
+  votes: any[];
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
+  selected: boolean;
+  onModification: any;
 }
 
-
 export type UserProps = {
-    _id: string;
-    image: string;
-    title: string;
-    description: string;
-    price: string;
-    // avatarUrl: string;
-    // isVerified: boolean; 
-    email: string;
-    gender: string;
+  _id: string;
+  image: string;
+  title: string;
+  description: string;
+  price: string;
+  // avatarUrl: string;
+  // isVerified: boolean;
+  email: string;
+  gender: string;
+  checkouturl: string;
 };
 
 type UserTableRowProps = {
-    row: UserProps;
-    selected: boolean;
-    onSelectRow: () => void;
-    onModification:any;
+  row: UserProps;
+  selected: boolean;
+  onSelectRow: () => void;
+  onModification: any;
 };
 
+export function ProductTableRow({ row, selected, onSelectRow, onModification }: UserTableRowProps) {
+  const [loading, setLoading] = useState(false);
+  const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
+  const [formData, setFormData] = useState<{
+    image: string;
+    title: string;
+    price: string;
+    description: string;
+    checkouturl: string;
+  }>({
+    image: '',
+    title: '',
+    price: '',
+    description: '',
+    checkouturl: '',
+  });
 
+  const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setOpenPopover(event.currentTarget);
+  }, []);
 
+  const handleClosePopover = useCallback(() => {
+    setOpenPopover(null);
+  }, []);
 
-export function ProductTableRow({ row, selected, onSelectRow,onModification }: UserTableRowProps) {
-    const [loading, setLoading] = useState(false);
-    const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
-    const [openModal, setOpenModal] = useState<boolean>(false);
-    const [formData, setFormData] = useState<{ image:string,title: string; price: string; description: string }>({
-        image:'',
-        title: '',
-        price: '',
-        description: '',
+  const handleOpenModal = () => {
+    setFormData({
+      image: row?.image,
+      title: row?.title,
+      price: row?.price,
+      description: row?.description,
+      checkouturl: row?.checkouturl || '',
     });
+    setOpenModal(true);
+    handleClosePopover();
+  };
 
-    const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-        setOpenPopover(event.currentTarget);
-    }, []);
-    
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    const handleClosePopover = useCallback(() => {
-        setOpenPopover(null);
-    }, []);
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const response = await api.put(`/api/product?id=${row._id}`, formData);
+      if (response.status === 200) {
+        // alert('Product updated successfully');
+        onModification();
+        handleCloseModal();
+      } else {
+        // alert('Failed to update product. Please try again.');
+      }
+    } catch (error) {
+      console.error('Update failed', error);
+      alert('An error occurred while updating the product.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleOpenModal = () => {
-        setFormData({ image: row.image,title: row.title, price: row.price, description: row.description });
-        setOpenModal(true);
-        handleClosePopover();
-    };
+  const handleDelete = useCallback(async (id: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete ?');
+    if (confirmed) {
+      const response = await api.delete(`/api/product?id=${id}`);
+      // console.log("@@@@@", response?.data?.data)`
+    }
+    setOpenPopover(null);
+  }, []);
 
-    const handleCloseModal = () => {
-        setOpenModal(false);
-    };
-    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      console.log(file, '===>>');
+      setIsUploading(true);
+      try {
+        const response = await api.post(
+          '/fileUpload',
+          { files: file },
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          }
+        );
+        console.log('===>>>response', response?.data?.data.urls[0]);
 
-    const handleSubmit = async () => {
-        setLoading(true);
-        try {
-            const response = await api.put(`/api/product?id=${row._id}`, formData);
-    
-            if (response.status === 200) {
-                // alert('Product updated successfully');
-                onModification();    
-                handleCloseModal();
-            } else {
-                // alert('Failed to update product. Please try again.');
-            }
-        } catch (error) {
-            console.error('Update failed', error);
-            alert('An error occurred while updating the product.');
-        } finally {
-            setLoading(false);
+        if (response.status === 200) {
+          setFormData((prev) => ({ ...prev, image: response?.data?.data.urls[0] }));
+          setImageUrl(response?.data?.data.urls[0]);
+          console.log('Uploaded Image URL:', response?.data?.data.urls[0]);
         }
-    };
-    
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        alert('Failed to upload image. Please try again.');
+      } finally {
+        setIsUploading(false); // Stop loading
+      }
+    }
+  };
 
-    const handleDelete = useCallback(async (id: string) => {
-        const confirmed = window.confirm("Are you sure you want to delete ?")
-        if (confirmed) {
-            const response = await api.delete(`/api/product?id=${id}`);
-            // console.log("@@@@@", response?.data?.data)`
-            
-        }
-        setOpenPopover(null);
-    }, []);
-    
-    return (
-          <>
-<Modal open={openModal} onClose={handleCloseModal}>
-    <Box
-        sx={{
+  return (
+    <>
+      <Modal open={openModal} onClose={handleCloseModal}>
+        <Box
+          sx={{
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 400,
+            width: {
+              xs: '95%', // Mobile: 95% width
+              sm: '90%', // Small screens: 90% width
+              md: 500, // Medium screens and up: fixed 500px
+            },
+            maxWidth: 600, // Maximum width
+            maxHeight: {
+              xs: '90vh', // Mobile: 90% of viewport height
+              sm: '85vh', // Small screens: 85% of viewport height
+              md: '80vh', // Medium screens and up: 80% of viewport height
+            },
             bgcolor: 'background.paper',
             boxShadow: 24,
-            p: 4,
             borderRadius: 2,
-        }}
-    >
-        <h2>Edit Product</h2>
-
-        <Box display="flex" justifyContent="center" mb={2}>
-            <img 
-                src={formData.image || 'https://via.placeholder.com/150'} 
-                alt="Product"
-                style={{ width: '70%', height: 'auto', borderRadius: 8 }}
-            />
-        </Box>
-
-
-
-        <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string; 
-                setFormData((prev) => ({ ...prev, image: result }));
-            };
-            reader.readAsDataURL(file);
-        }
-    }}
-/>
-
-        <TextField
-            label="Title"
-            name="title"
-            fullWidth
-            margin="normal"
-            value={formData.title}
-            onChange={handleChange}
-        />
-        <TextField
-            label="Price"
-            name="price"
-            fullWidth
-            margin="normal"
-            value={formData.price}
-            onChange={handleChange}
-        />
-        <TextField
-            label="Description"
-            name="description"
-            fullWidth
-            margin="normal"
-            multiline
-            rows={3}
-            value={formData.description}
-            onChange={handleChange}
-        />
-        <Box display="flex" justifyContent="space-between" mt={2}>
-            <Button variant="contained" color="primary" onClick={handleSubmit}>
-                Save
-            </Button>
-            <Button variant="outlined" onClick={handleCloseModal}>
-                Cancel
-            </Button>
-        </Box>
-    </Box>
-</Modal>
-   
-   
-
-
-
-
-            <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-                <TableCell padding="checkbox">
-                    {/* <Checkbox disableRipple checked={selected} onChange={onSelectRow} /> */}
-                </TableCell>
-
-                <TableCell component="th" scope="row">
-                    <Box gap={2} display="flex" alignItems="center">
-                        <Avatar alt={row.image} src={row.image} />
-                        {/* {row.image} */}
-                    </Box>
-                </TableCell>
-
-                <TableCell>{row.title}</TableCell>
-
-                <TableCell>{row.price}</TableCell>
-
-                <TableCell align="center">
-                    {row.description}
-                </TableCell>
-
-                {/* <TableCell>
-          <Label color={(row.status === 'banned' && 'error') || 'success'}>{row.status}</Label>
-        </TableCell> */}
-
-                <TableCell align="right">
-                    <IconButton onClick={handleOpenPopover}>
-                        <Iconify icon="eva:more-vertical-fill" />
-                    </IconButton>
-                </TableCell>
-            </TableRow>
-
-
-            <Popover
-                open={!!openPopover}
-                anchorEl={openPopover}
-                onClose={handleClosePopover}
-                anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            overflow: 'hidden', // Hide overflow on container
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Scrollable Content Container */}
+          <Box
+            sx={{
+              p: {
+                xs: 2, // Mobile: 16px padding
+                sm: 3, // Small screens: 24px padding
+                md: 4, // Medium screens and up: 32px padding
+              },
+              overflowY: 'auto',
+              flexGrow: 1,
+              '&::-webkit-scrollbar': {
+                width: '6px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: '#f1f1f1',
+                borderRadius: '3px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#c1c1c1',
+                borderRadius: '3px',
+                '&:hover': {
+                  backgroundColor: '#a8a8a8',
+                },
+              },
+            }}
+          >
+            <h2
+              style={{
+                marginTop: 0,
+                marginBottom: '16px',
+                fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)', // Responsive font size
+                textAlign: 'center',
+              }}
             >
-                <MenuList
-                    disablePadding
-                    sx={{
-                        p: 0.5,
-                        gap: 0.5,
-                        width: 140,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        [`& .${menuItemClasses.root}`]: {
-                            px: 1,
-                            gap: 2,
-                            borderRadius: 0.75,
-                            [`&.${menuItemClasses.selected}`]: { bgcolor: 'action.selected' },
-                        },
-                    }}
-                >
-                    <MenuItem onClick={handleOpenModal}>
-                        <Iconify icon="solar:pen-bold" />
-                        Edit
-                    </MenuItem>
+              Edit Product
+            </h2>
 
-                    <MenuItem
-                        onClick={() => handleDelete(row?._id)}
-                    >
-                        <Iconify icon="solar:trash-bin-trash-bold" />
-                        Delete
-                    </MenuItem>
-                    {/* <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+            {/* Product Image Display */}
+            <Box display="flex" justifyContent="center" mb={2}>
+              <Box
+                sx={{
+                  width: {
+                    xs: 100, // Mobile: 100px
+                    sm: 120, // Small screens: 120px
+                  },
+                  height: {
+                    xs: 100, // Mobile: 100px
+                    sm: 120, // Small screens: 120px
+                  },
+                  borderRadius: '50%', // Perfect circle
+                  overflow: 'hidden',
+                  border: '2px solid #e0e0e0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#f5f5f5',
+                }}
+              >
+                {isUploading ? (
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    sx={{ textAlign: 'center', color: '#666' }}
+                  >
+                    <CircularProgress size={24} sx={{ mb: 1 }} />
+                    <Typography variant="caption" fontSize="10px">
+                      Uploading...
+                    </Typography>
+                  </Box>
+                ) : (
+                  <img
+                    src={
+                      imageUrl ? `${API_BASE_URL}${imageUrl}` : `${API_BASE_URL}${formData.image}`
+                    }
+                    alt="Product"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+            {/* Styled File Upload */}
+            <Box display="flex" justifyContent="center" mb={3}>
+              <Box
+                component="label"
+                htmlFor="editImageUpload"
+                sx={{
+                  cursor: 'pointer',
+                  padding: '10px 20px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  borderRadius: '8px',
+                  display: 'inline-block',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                  textAlign: 'center',
+                  minWidth: '140px',
+                  transition: 'background-color 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: '#0056b3',
+                  },
+                  '&:focus': {
+                    backgroundColor: '#0056b3',
+                    outline: '2px solid #ffffff',
+                    outlineOffset: '2px',
+                  },
+                  '&:active': {
+                    backgroundColor: '#004085',
+                  },
+                }}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    document.getElementById('editImageUpload')?.click();
+                  }
+                }}
+              >
+                Change Image
+                <input
+                  id="editImageUpload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  //   onChange={(e) => {
+                  //     if (e.target.files && e.target.files.length > 0) {
+                  //       const file = e.target.files[0];
+                  //       const reader = new FileReader();
+                  //       reader.onloadend = () => {
+                  //         const result = reader.result as string;
+                  //         setFormData((prev) => ({ ...prev, image: result }));
+                  //       };
+                  //       reader.readAsDataURL(file);
+                  //     }
+                  //   }}
+                  style={{ display: 'none' }}
+                />
+              </Box>
+            </Box>
+
+            {/* Form Fields */}
+            <TextField
+              label="Title"
+              name="title"
+              fullWidth
+              margin="normal"
+              size="small" // Smaller size for better mobile experience
+              value={formData.title}
+              onChange={handleChange}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              label="Price"
+              name="price"
+              fullWidth
+              margin="normal"
+              size="small"
+              value={formData.price}
+              onChange={handleChange}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              label="CheckOut URL"
+              name="checkouturl"
+              fullWidth
+              margin="normal"
+              size="small"
+              value={formData.checkouturl}
+              onChange={handleChange}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                },
+              }}
+            />
+
+            <TextField
+              label="Description"
+              name="description"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={3}
+              size="small"
+              value={formData.description}
+              onChange={handleChange}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                },
+              }}
+            />
+
+            {/* Button Container */}
+            <Box
+              display="flex"
+              flexDirection={{
+                xs: 'column', // Mobile: stack buttons vertically
+                sm: 'row', // Small screens and up: horizontal
+              }}
+              justifyContent="space-between"
+              gap={2}
+              mt={3}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}
+                fullWidth // Always full width for better mobile experience
+                sx={{
+                  order: {
+                    xs: 2, // Mobile: Save button second
+                    sm: 1, // Small screens and up: Save button first
+                  },
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                  py: {
+                    xs: 1.5, // More padding on mobile for easier touch
+                    sm: 1,
+                  },
+                }}
+              >
+                Save Changes
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleCloseModal}
+                fullWidth
+                sx={{
+                  order: {
+                    xs: 1, // Mobile: Cancel button first
+                    sm: 2, // Small screens and up: Cancel button second
+                  },
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                  py: {
+                    xs: 1.5,
+                    sm: 1,
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
+
+      <TableRow
+        hover
+        tabIndex={-1}
+        role="checkbox"
+        selected={selected}
+        sx={{
+          '& .MuiTableCell-root': {
+            padding: {
+              xs: '8px 4px', // Mobile: smaller padding
+              sm: '16px 8px', // Small screens: medium padding
+              md: '16px', // Desktop: default padding
+            },
+            fontSize: {
+              xs: '0.75rem', // Mobile: smaller font
+              sm: '0.875rem', // Small screens: medium font
+              md: '1rem', // Desktop: default font
+            },
+          },
+        }}
+      >
+        {/* Checkbox Column - Hidden on mobile */}
+        <TableCell
+          padding="checkbox"
+          sx={{
+            display: {
+              xs: 'none', // Hidden on mobile
+              sm: 'table-cell', // Visible on small screens and up
+            },
+          }}
+        >
+          {/* <Checkbox disableRipple checked={selected} onChange={onSelectRow} /> */}
+        </TableCell>
+
+        {/* Product Image and Title - Combined on mobile */}
+        <TableCell
+          component="th"
+          scope="row"
+          sx={{
+            minWidth: {
+              xs: 120, // Mobile: minimum width
+              sm: 150, // Small screens: wider
+              md: 200, // Desktop: full width
+            },
+          }}
+        >
+          <Box
+            gap={2}
+            display="flex"
+            alignItems="center"
+            sx={{
+              flexDirection: {
+                xs: 'column', // Mobile: stack vertically
+                sm: 'row', // Small screens and up: horizontal
+              },
+              textAlign: {
+                xs: 'center', // Mobile: center align
+                sm: 'left', // Small screens and up: left align
+              },
+            }}
+          >
+            <Avatar
+              alt="Product Image"
+              src={`${API_BASE_URL}${row.image}`}
+              sx={{
+                width: {
+                  xs: 40, // Mobile: smaller avatar
+                  sm: 50, // Small screens: medium avatar
+                  md: 56, // Desktop: default avatar
+                },
+                height: {
+                  xs: 40,
+                  sm: 50,
+                  md: 56,
+                },
+              }}
+            />
+            {/* Show title on mobile within the image cell */}
+            <Box
+              sx={{
+                display: {
+                  xs: 'block', // Show on mobile
+                  sm: 'none', // Hide on small screens and up
+                },
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                lineHeight: 1.2,
+                maxWidth: 80,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {row.title}
+            </Box>
+          </Box>
+        </TableCell>
+
+        {/* Title Column - Hidden on mobile (shown in image cell) */}
+        <TableCell
+          sx={{
+            display: {
+              xs: 'none', // Hidden on mobile
+              sm: 'table-cell', // Visible on small screens and up
+            },
+            maxWidth: {
+              sm: 120, // Small screens: limited width
+              md: 200, // Desktop: more width
+            },
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {row.title}
+        </TableCell>
+
+        {/* Price Column */}
+        <TableCell
+          sx={{
+            fontWeight: 600,
+            color: 'primary.main',
+            minWidth: {
+              xs: 60, // Mobile: compact
+              sm: 80, // Small screens: wider
+            },
+          }}
+        >
+          {(() => {
+            const price = row.price;
+            if (typeof price === 'number') {
+              return `${price}`;
+            }
+            if (typeof price === 'string') {
+              return `${Number(price).toFixed(2)}`;
+            }
+            return price || 'N/A';
+          })()}
+        </TableCell>
+
+        {/* Description Column - Responsive width and truncation */}
+        <TableCell
+          align="center"
+          sx={{
+            maxWidth: {
+              xs: 100, // Mobile: very limited width
+              sm: 150, // Small screens: medium width
+              md: 300, // Desktop: full width
+            },
+            overflow: 'hidden',
+          }}
+        >
+          <Tooltip title={row.description || 'No description'} arrow placement="top">
+            <Box
+              component="span"
+              sx={{
+                display: 'block',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'help',
+              }}
+            >
+              {row.description?.length > 0 ? (
+                <>
+                  {/* Mobile: show less text */}
+                  <Box
+                    component="span"
+                    sx={{
+                      display: {
+                        xs: 'inline',
+                        sm: 'none',
+                      },
+                    }}
+                  >
+                    {row.description.length > 30
+                      ? `${row.description.slice(0, 30)}...`
+                      : row.description}
+                  </Box>
+                  {/* Small screens and up: show more text */}
+                  <Box
+                    component="span"
+                    sx={{
+                      display: {
+                        xs: 'none',
+                        sm: 'inline',
+                      },
+                    }}
+                  >
+                    {row.description.length > 100
+                      ? `${row.description.slice(0, 100)}...`
+                      : row.description}
+                  </Box>
+                </>
+              ) : (
+                <Box
+                  component="span"
+                  sx={{
+                    fontStyle: 'italic',
+                    color: 'text.secondary',
+                  }}
+                >
+                  No description
+                </Box>
+              )}
+            </Box>
+          </Tooltip>
+        </TableCell>
+
+        {/* Actions Column */}
+        <TableCell
+          align="right"
+          sx={{
+            minWidth: 50,
+            padding: {
+              xs: '8px 4px', // Mobile: minimal padding
+              sm: '16px 8px', // Small screens: normal padding
+            },
+          }}
+        >
+          <IconButton
+            onClick={handleOpenPopover}
+            size={window.innerWidth < 600 ? 'small' : 'medium'} // Responsive button size
+            sx={{
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+
+      <Popover
+        open={!!openPopover}
+        anchorEl={openPopover}
+        onClose={handleClosePopover}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuList
+          disablePadding
+          sx={{
+            p: 0.5,
+            gap: 0.5,
+            width: 140,
+            display: 'flex',
+            flexDirection: 'column',
+            [`& .${menuItemClasses.root}`]: {
+              px: 1,
+              gap: 2,
+              borderRadius: 0.75,
+              [`&.${menuItemClasses.selected}`]: { bgcolor: 'action.selected' },
+            },
+          }}
+        >
+          <MenuItem onClick={handleOpenModal}>
+            <Iconify icon="solar:pen-bold" />
+            Edit
+          </MenuItem>
+
+          <MenuItem onClick={() => handleDelete(row?._id)}>
+            <Iconify icon="solar:trash-bin-trash-bold" />
+            Delete
+          </MenuItem>
+          {/* <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
           <Iconify icon="mdi:block" />
             Block 
           </MenuItem> */}
-                </MenuList>
-            </Popover>
-
-        </>
-    );
+        </MenuList>
+      </Popover>
+    </>
+  );
 }

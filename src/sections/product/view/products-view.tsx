@@ -6,12 +6,12 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Unstable_Grid2';
 import Pagination from '@mui/material/Pagination';
 import Typography from '@mui/material/Typography';
-import { api } from 'src/api/url';
+import { api, API_BASE_URL } from 'src/api/url';
 import { _products, _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { useQuery } from '@tanstack/react-query';
 import Button from '@mui/material/Button';
-import { Card, Table, TablePagination } from '@mui/material';
+import { Card, CircularProgress, Table, TablePagination } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import TableContainer from '@mui/material/TableContainer';
 import { UserTableHead } from 'src/sections/blockUser/user-table-head';
@@ -45,25 +45,25 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
   const [sortBy, setSortBy] = useState('featured');
   const [openModal, setOpenModal] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
-  const [imageUrl, setImageUrl] = useState();
+  const [imageUrl, setImageUrl] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     price: '',
     description: '',
+    checkouturl: '',
     image: '',
   });
 
   const [userData, setUserData] = useState<ProductItemProps[]>([]);
   const [filterName, setFilterName] = useState('');
 
-  console.log('===>>>>userData', userData);
-
   const table = useTable();
 
   const fetchUsers = async () => {
     const response = await api.get('/api/product');
     setUserData(response?.data?.data?.data);
-    console.log('@@@@@', response?.data?.data?.data);
+    // console.log('@@@@@', response?.data?.data?.data);
   };
 
   const {
@@ -76,15 +76,22 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     staleTime: 60000,
   });
 
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    // console.log(name, value,'===>>name , value')
+    setFormData({ ...formData, [name]: value });
+  };
+
   if (isLoading) return <Typography>Loading...</Typography>;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      console.log('====>>>>file', file);
+      // console.log('====>>>>file', file);
       const formData = new FormData();
       formData.append('image', file);
-      console.log('===>>>>>', formData);
+      // console.log('===>>>>>', formData);
+      setIsUploading(true)
       try {
         const response = await api.post(
           '/fileUpload',
@@ -93,7 +100,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
             headers: { 'Content-Type': 'multipart/form-data' },
           }
         );
-        console.log('===>>>response', response?.data?.data.urls[0]);
+        // console.log('===>>>response', response?.data?.data.urls[0]);
         if (response.status === 200) {
           setFormData((prev) => ({ ...prev, image: response?.data?.data.urls[0] }));
           setImageUrl(response?.data?.data.urls[0]);
@@ -102,6 +109,8 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
       } catch (error) {
         console.error('Image upload failed:', error);
         alert('Failed to upload image. Please try again.');
+      }finally{
+        setIsUploading(false)
       }
     }
   };
@@ -114,6 +123,15 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
       console.log('response', response);
       if (response.status === 200) {
         handleCloseModal();
+        fetchUsers();
+        setFormData({
+          title: '',
+          price: '',
+          description: '',
+          checkouturl: '',
+          image: '',
+        });
+        setImageUrl(null)
       } else {
         // alert('Failed to update product. Please try again.');
       }
@@ -212,107 +230,217 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 400,
+            width: {
+              xs: '95%', // Mobile: 95% width
+              sm: '90%', // Small screens: 90% width
+              md: 500, // Medium screens and up: fixed 500px
+            },
+            maxWidth: 600, // Maximum width
+            maxHeight: {
+              xs: '90vh', // Mobile: 90% of viewport height
+              sm: '85vh', // Small screens: 85% of viewport height
+              md: '80vh', // Medium screens and up: 80% of viewport height
+            },
             bgcolor: 'background.paper',
             boxShadow: 24,
-            p: 4,
             borderRadius: 2,
+            overflow: 'hidden', // Hide overflow on container
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <h2>Add Product</h2>
-
-          <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-            {/* Image Preview */}
-            <Box
-              sx={{
-                width: 120,
-                height: 120,
-                borderRadius: '50%',
-                overflow: 'hidden',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                border: '2px solid #ccc',
-                backgroundColor: '#f4f4f4',
-              }}
-            >
-              <img
-                src={
-                  imageUrl
-                    ? `http://85.31.234.205:4004/public/upload/${imageUrl}`
-                    : '/default-user-icon.png'
-                }
-                alt="Product"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </Box>
-
-            {/* Styled Upload Button */}
-            <label
-              htmlFor="imageUpload"
+          {/* Scrollable Content Container */}
+          <Box
+            sx={{
+              p: {
+                xs: 2, // Mobile: 16px padding
+                sm: 3, // Small screens: 24px padding
+                md: 4, // Medium screens and up: 32px padding
+              },
+              overflowY: 'auto',
+              flexGrow: 1,
+              '&::-webkit-scrollbar': {
+                width: '6px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: '#f1f1f1',
+                borderRadius: '3px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#c1c1c1',
+                borderRadius: '3px',
+                '&:hover': {
+                  backgroundColor: '#a8a8a8',
+                },
+              },
+            }}
+          >
+            <h2
               style={{
-                cursor: 'pointer',
-                padding: '10px 20px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                borderRadius: '8px',
-                display: 'inline-block',
+                marginTop: 0,
+                marginBottom: '16px',
+                fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)', // Responsive font size
               }}
             >
-              Upload Image
-              <input
-                id="imageUpload"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-              />
-            </label>
-          </Box>
-
-          <TextField
-            label="Title"
-            name="title"
-            fullWidth
-            margin="normal"
-            // value={formData.title}
-            // onChange={handleChange}
-          />
-
-          <TextField
-            label="Price"
-            name="price"
-            fullWidth
-            margin="normal"
-            // value={formData.price}
-            // onChange={handleChange}
-          />
-          <TextField
-            label="CheckOut URL"
-            name="checkout_URL"
-            fullWidth
-            margin="normal"
-            // value={formData.price}
-            // onChange={handleChange}
-          />
-          <TextField
-            label="Description"
-            name="description"
-            fullWidth
-            margin="normal"
-            multiline
-            rows={3}
-            // value={formData.description}
-            // onChange={handleChange}
-          />
-
-          <Box display="flex" justifyContent="space-between" mt={2}>
-            <Button variant="contained" color="primary" onClick={handleSubmit}>
               Add Product
-            </Button>
-            <Button variant="outlined" onClick={handleCloseModal}>
-              Cancel
-            </Button>
+            </h2>
+
+         <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
+  {/* Image Preview */}
+  <Box
+    sx={{
+      width: {
+        xs: 100, // Mobile: smaller image
+        sm: 120, // Small screens and up: larger image
+      },
+      height: {
+        xs: 100,
+        sm: 120,
+      },
+      borderRadius: '50%',
+      overflow: 'hidden',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      border: '2px solid #ccc',
+      backgroundColor: '#f4f4f4',
+      mb: 2,
+    }}
+  >
+    {isUploading ? (
+      // Loading state
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        sx={{ textAlign: 'center', color: '#666' }}
+      >
+        <CircularProgress size={24} sx={{ mb: 0.5 }} />
+        <Typography variant="caption" fontSize="10px">
+          Uploading...
+        </Typography>
+      </Box>
+    ) : (
+      // Image display
+      <img
+        src={imageUrl ? `${API_BASE_URL}${imageUrl}` : '/default-user-icon.png'}
+        alt="Product"
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+    )}
+  </Box>
+
+  {/* Styled Upload Button */}
+  <label
+    htmlFor="imageUpload"
+    style={{
+      cursor: isUploading ? 'not-allowed' : 'pointer',
+      padding: '10px 20px',
+      backgroundColor: isUploading ? '#6c757d' : '#007bff',
+      color: 'white',
+      borderRadius: '8px',
+      display: 'inline-block',
+      fontSize: 'clamp(0.875rem, 2vw, 1rem)', // Responsive font size
+      textAlign: 'center',
+      minWidth: '120px',
+      opacity: isUploading ? 0.7 : 1,
+      transition: 'all 0.3s ease',
+    }}
+  >
+    {isUploading ? 'Uploading...' : 'Upload Image'}
+    <input
+      id="imageUpload"
+      type="file"
+      accept="image/*"
+      onChange={handleFileChange}
+      disabled={isUploading}
+      style={{ display: 'none' }}
+    />
+  </label>
+</Box>
+
+            <TextField
+              label="Title"
+              name="title"
+              fullWidth
+              margin="normal"
+              size="small" // Smaller size for better mobile experience
+              value={formData.title}
+              onChange={handleChange}
+            />
+
+            <TextField
+              label="Price"
+              name="price"
+              fullWidth
+              margin="normal"
+              size="small"
+              value={formData.price}
+              onChange={handleChange}
+            />
+
+            <TextField
+              label="CheckOut URL"
+              name="checkout_URL"
+              fullWidth
+              margin="normal"
+              size="small"
+              value={formData.checkouturl}
+              onChange={handleChange}
+            />
+
+            <TextField
+              label="Description"
+              name="description"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={3}
+              size="small"
+              value={formData.description}
+              onChange={handleChange}
+            />
+
+            {/* Button Container */}
+            <Box
+              display="flex"
+              flexDirection={{
+                xs: 'column', // Mobile: stack buttons vertically
+                sm: 'row', // Small screens and up: horizontal
+              }}
+              justifyContent="space-between"
+              gap={2}
+              mt={3}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}
+                fullWidth={true} // Always full width for better mobile experience
+                sx={{
+                  order: {
+                    xs: 2, // Mobile: Add button second
+                    sm: 1, // Small screens and up: Add button first
+                  },
+                }}
+              >
+                Add Product
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleCloseModal}
+                fullWidth={true}
+                sx={{
+                  order: {
+                    xs: 1, // Mobile: Cancel button first
+                    sm: 2, // Small screens and up: Cancel button second
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Modal>
