@@ -65,7 +65,7 @@ export function PostView() {
 
   const fetchUsers = async () => {
     const response = await api.get('/admin/getAllPost'); 
-    console.log(response?.data?.data?.response)
+    
     setUserData(response?.data?.data?.response)
     setTotal(response?.data?.data?.total)
 

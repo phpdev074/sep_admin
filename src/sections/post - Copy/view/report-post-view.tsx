@@ -66,7 +66,7 @@ export function ReportPostViews() {
     const response = await api.get('/api/post/getReportedPosts'); 
     setUserData(response?.data?.data)
     // return response.data;
-    console.log("123654798",response?.data?.data);
+    // console.log("123654798",response?.data?.data);
   }
     const { data: getReportedPosts, error, isLoading } = useQuery({
       queryKey: ['/api/post/getReportedPosts'],

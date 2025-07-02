@@ -53,8 +53,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   );
 
   const handleLogout = () => {
-    
-    localStorage.removeItem('authToken'); 
+    localStorage.removeItem('token'); 
     navigate('/');
   };
 

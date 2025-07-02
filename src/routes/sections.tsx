@@ -9,6 +9,7 @@ import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 import { BlockView } from 'src/sections/blockUser/view/blockedUser';
 import { ReportPostView } from 'src/sections/reportPost/view/post-view';
+import PrivateRoute from 'src/PrivateRoute';
 
 // ----------------------------------------------------------------------
 
@@ -39,10 +40,13 @@ const renderFallback = (
 );
 
 export function Router() {
+
+  const token = localStorage.getItem('token');
+
   return useRoutes([
     {
       path: '/',
-      element: (
+      element: token ? <Navigate to="/dashboard" replace /> : (
         <AuthLayout>
           <SignInPage />
         </AuthLayout>
@@ -51,11 +55,13 @@ export function Router() {
     },
     {
       element: (
+        <PrivateRoute>
         <DashboardLayout>
           <Suspense fallback={renderFallback}>
             <Outlet />
           </Suspense>
         </DashboardLayout>
+        </PrivateRoute>
       ),
       children: [
         { path:"dashboard", element: <HomePage />,  },

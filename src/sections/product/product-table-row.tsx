@@ -80,7 +80,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-
+  const [openImageModal, setOpenImageModal] = useState(false);
   const [formData, setFormData] = useState<{
     image: string;
     title: string;
@@ -141,14 +141,22 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
     }
   };
 
-  const handleDelete = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete ?');
-    if (confirmed) {
+const handleDelete = useCallback(async (id: string) => {
+  const confirmed = window.confirm('Are you sure you want to delete ?');
+  if (confirmed) {
+    try {
       const response = await api.delete(`/api/product?id=${id}`);
-      // console.log("@@@@@", response?.data?.data)`
+      if (response.status === 200) {
+        onModification(); // <-- Refresh list after deletion
+      }
+    } catch (error) {
+      console.error('Delete failed', error);
+      alert('An error occurred while deleting the product.');
     }
-    setOpenPopover(null);
-  }, []);
+  }
+  setOpenPopover(null);
+}, [onModification]);
+
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -178,6 +186,14 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
       }
     }
   };
+
+  const handleChangeWrapper = (target: { name: string; value: string }) => {
+    setFormData(prev => ({
+      ...prev,
+      [target.name]: target.value,
+    }));
+  };
+
 
   return (
     <>
@@ -377,8 +393,11 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
               fullWidth
               margin="normal"
               size="small"
-              value={formData.price}
-              onChange={handleChange}
+              value={formData.price.startsWith('$') ? formData.price : `$${formData.price}`}
+              onChange={(e) => {
+                const rawValue = e.target.value.replace(/[^0-9.]/g, '');
+                handleChangeWrapper({ name: 'price', value: rawValue });
+              }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   fontSize: {
@@ -525,9 +544,9 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
           scope="row"
           sx={{
             minWidth: {
-              xs: 120, // Mobile: minimum width
-              sm: 150, // Small screens: wider
-              md: 200, // Desktop: full width
+              xs: 120,
+              sm: 150,
+              md: 200,
             },
           }}
         >
@@ -537,37 +556,53 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
             alignItems="center"
             sx={{
               flexDirection: {
-                xs: 'column', // Mobile: stack vertically
-                sm: 'row', // Small screens and up: horizontal
+                xs: 'column',
+                sm: 'row',
               },
               textAlign: {
-                xs: 'center', // Mobile: center align
-                sm: 'left', // Small screens and up: left align
+                xs: 'center',
+                sm: 'left',
               },
             }}
           >
-            <Avatar
-              alt="Product Image"
-              src={`${API_BASE_URL}${row.image}`}
+            {/* Zoom-on-hover wrapper */}
+            <Box
+              onClick={() => setOpenImageModal(true)}
               sx={{
-                width: {
-                  xs: 40, // Mobile: smaller avatar
-                  sm: 50, // Small screens: medium avatar
-                  md: 56, // Desktop: default avatar
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.2)',
+                  cursor: 'pointer',
                 },
-                height: {
-                  xs: 40,
-                  sm: 50,
-                  md: 56,
-                },
+                borderRadius: '50%',
+                overflow: 'hidden',
+                display: 'inline-block',
               }}
-            />
+            >
+              <Avatar
+                alt="Product Image"
+                src={`${API_BASE_URL}${row.image}`}
+                sx={{
+                  width: {
+                    xs: 40,
+                    sm: 50,
+                    md: 56,
+                  },
+                  height: {
+                    xs: 40,
+                    sm: 50,
+                    md: 56,
+                  },
+                }}
+              />
+            </Box>
+
             {/* Show title on mobile within the image cell */}
             <Box
               sx={{
                 display: {
-                  xs: 'block', // Show on mobile
-                  sm: 'none', // Hide on small screens and up
+                  xs: 'block',
+                  sm: 'none',
                 },
                 fontSize: '0.75rem',
                 fontWeight: 500,
@@ -582,6 +617,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
             </Box>
           </Box>
         </TableCell>
+
 
         {/* Title Column - Hidden on mobile (shown in image cell) */}
         <TableCell
@@ -613,7 +649,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
             },
           }}
         >
-          {(() => {
+          ${(() => {
             const price = row.price;
             if (typeof price === 'number') {
               return `${price}`;
@@ -718,6 +754,32 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
           </IconButton>
         </TableCell>
       </TableRow>
+
+      <Modal open={openImageModal} onClose={() => setOpenImageModal(false)}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            outline: 'none',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+          }}
+        >
+          <img
+            src={`${API_BASE_URL}${row.image}`}
+            alt="Enlarged Product"
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '90vh',
+              borderRadius: '8px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+            }}
+          />
+        </Box>
+      </Modal>
 
       <Popover
         open={!!openPopover}

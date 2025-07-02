@@ -22,6 +22,7 @@ import { emptyRows } from 'src/sections/user/utils';
 import { TableNoData } from 'src/sections/blockUser/table-no-data';
 import { applyFilter, getComparator } from 'src/sections/blockUser/utils';
 import { ProductTableRow } from '../product-table-row';
+import { InputAdornment } from '@mui/material';
 
 export type ProductItemProps = {
   _id: string;
@@ -46,7 +47,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
   const [openModal, setOpenModal] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     price: '',
@@ -54,27 +55,47 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     checkouturl: '',
     image: '',
   });
-
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [userData, setUserData] = useState<ProductItemProps[]>([]);
   const [filterName, setFilterName] = useState('');
+  const [errors, setErrors] = useState({
+    image: '',
+    title: '',
+    price: '',
+    description: '',
+  });
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    page: 0,
+  });
+
 
   const table = useTable();
-
-  const fetchUsers = async () => {
-    const response = await api.get('/api/product');
-    setUserData(response?.data?.data?.data);
-    // console.log('@@@@@', response?.data?.data?.data);
+  const fetchUsers = async (limit: number, page: number) => {
+    try {
+      const response = await api.get(`/api/product?limit=${limit}&page=${page + 1}`);
+      setUserData(response?.data?.data?.data || []);
+      
+      setTotal(response?.data?.data?.totalCount || 0);
+      return response.data?.data?.users || [];
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        return [];
+      }
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const {
-    data: getAllPost,
-    error,
-    isLoading,
-  } = useQuery({
-    queryKey: ['api/product'],
-    queryFn: fetchUsers,
-    staleTime: 60000,
-  });
+  useEffect(() => {
+    setIsLoading(true);
+    fetchUsers(pagination.limit, pagination.page);
+  }, [pagination.limit, pagination.page]);
+
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -109,21 +130,62 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
       } catch (error) {
         console.error('Image upload failed:', error);
         alert('Failed to upload image. Please try again.');
-      }finally{
+      } finally {
         setIsUploading(false)
       }
     }
   };
 
   const notFound = !!filterName;
+
   const handleSubmit = async () => {
+    console.log("===<<<")
+    const validationErrors: {
+      image: string;
+      title: string;
+      price: string;
+      description: string;
+    } = {
+      image: '',
+      title: '',
+      price: '',
+      description: '',
+    };
+
+
+    if (!imageUrl) {
+      validationErrors.image = 'Image is required';
+    }
+
+    if (!formData.title.trim()) {
+      validationErrors.title = 'Title is required';
+    }
+
+    if (!formData.price.trim()) {
+      validationErrors.price = 'Price is required';
+    } else if (isNaN(Number(formData.price))) {
+      validationErrors.price = 'Price must be a number';
+    }
+
+
+    if (!formData.description.trim()) {
+      validationErrors.description = 'Description is required';
+    }
+
+    setErrors(validationErrors);
+
+    // If any validation errors, stop here
+    if (Object.values(validationErrors).some((msg) => msg !== '')) {
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await api.post(`/api/product`, formData);
       console.log('response', response);
       if (response.status === 200) {
         handleCloseModal();
-        fetchUsers();
+        fetchUsers(pagination.limit, pagination.page);
         setFormData({
           title: '',
           price: '',
@@ -142,8 +204,16 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
       setLoading(false);
     }
   };
+
   const handleCloseModal = () => {
     setOpenModal(false);
+    setErrors({
+      image: '',
+      title: '',
+      price: '',
+      description: '',
+    });
+
   };
 
   return (
@@ -153,7 +223,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
         <Button
           variant="contained"
           size="medium"
-          style={{ marginLeft: 920, backgroundColor: 'black' }}
+          style={{ marginLeft: 900, backgroundColor: 'black' }}
           onClick={() => setOpenModal(true)}
         >
           Add Product
@@ -187,10 +257,6 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
               />
               <TableBody>
                 {userData
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
                   .map((row: any) => (
                     <ProductTableRow
                       key={row?._id}
@@ -214,12 +280,19 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
 
         <TablePagination
           component="div"
-          page={table.page}
-          count={_users.length}
-          rowsPerPage={table.rowsPerPage}
-          onPageChange={table.onChangePage}
+          page={pagination.page}
+          count={total}
+          rowsPerPage={pagination.limit}
+          onPageChange={(event, newPage) => {
+            setPagination((prev) => ({ ...prev, page: newPage }));
+            table.setPage(newPage);
+          }}
           rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
+          onRowsPerPageChange={(event) => {
+            const newLimit = parseInt(event.target.value, 10);
+            setPagination({ page: 0, limit: newLimit });
+            table.setRowsPerPage?.(newLimit);
+          }}
         />
       </Card>
 
@@ -285,80 +358,89 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
               Add Product
             </h2>
 
-         <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-  {/* Image Preview */}
-  <Box
-    sx={{
-      width: {
-        xs: 100, // Mobile: smaller image
-        sm: 120, // Small screens and up: larger image
-      },
-      height: {
-        xs: 100,
-        sm: 120,
-      },
-      borderRadius: '50%',
-      overflow: 'hidden',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      border: '2px solid #ccc',
-      backgroundColor: '#f4f4f4',
-      mb: 2,
-    }}
-  >
-    {isUploading ? (
-      // Loading state
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        sx={{ textAlign: 'center', color: '#666' }}
-      >
-        <CircularProgress size={24} sx={{ mb: 0.5 }} />
-        <Typography variant="caption" fontSize="10px">
-          Uploading...
-        </Typography>
-      </Box>
-    ) : (
-      // Image display
-      <img
-        src={imageUrl ? `${API_BASE_URL}${imageUrl}` : '/default-user-icon.png'}
-        alt="Product"
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-      />
-    )}
-  </Box>
+            <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
+              {/* Image Preview */}
+              <Box
+                sx={{
+                  width: {
+                    xs: 100, // Mobile: smaller image
+                    sm: 120, // Small screens and up: larger image
+                  },
+                  height: {
+                    xs: 100,
+                    sm: 120,
+                  },
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  border: '2px solid #ccc',
+                  backgroundColor: '#f4f4f4',
+                  mb: 2,
+                }}
+              >
+                {isUploading ? (
+                  // Loading state
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    sx={{ textAlign: 'center', color: '#666' }}
+                  >
+                    <CircularProgress size={24} sx={{ mb: 0.5 }} />
+                    <Typography variant="caption" fontSize="10px">
+                      Uploading...
+                    </Typography>
+                  </Box>
+                ) : (
+                  // Image display
+                  <img
+                    src={imageUrl ? `${API_BASE_URL}${imageUrl}` : 'assets/icons/glass/queue.png'}
+                    alt="Product"
+                    style={{
+                      width: imageUrl ? '100%' : '20%',
+                      height: imageUrl ? '100%' : '20%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                )}
+              </Box>
 
-  {/* Styled Upload Button */}
-  <label
-    htmlFor="imageUpload"
-    style={{
-      cursor: isUploading ? 'not-allowed' : 'pointer',
-      padding: '10px 20px',
-      backgroundColor: isUploading ? '#6c757d' : '#007bff',
-      color: 'white',
-      borderRadius: '8px',
-      display: 'inline-block',
-      fontSize: 'clamp(0.875rem, 2vw, 1rem)', // Responsive font size
-      textAlign: 'center',
-      minWidth: '120px',
-      opacity: isUploading ? 0.7 : 1,
-      transition: 'all 0.3s ease',
-    }}
-  >
-    {isUploading ? 'Uploading...' : 'Upload Image'}
-    <input
-      id="imageUpload"
-      type="file"
-      accept="image/*"
-      onChange={handleFileChange}
-      disabled={isUploading}
-      style={{ display: 'none' }}
-    />
-  </label>
-</Box>
+              {/* Styled Upload Button */}
+              <label
+                htmlFor="imageUpload"
+                style={{
+                  cursor: isUploading ? 'not-allowed' : 'pointer',
+                  padding: '10px 20px',
+                  backgroundColor: isUploading ? '#6c757d' : '#007bff',
+                  color: 'white',
+                  borderRadius: '8px',
+                  display: 'inline-block',
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)', // Responsive font size
+                  textAlign: 'center',
+                  minWidth: '120px',
+                  opacity: isUploading ? 0.7 : 1,
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                {isUploading ? 'Uploading...' : 'Upload Image'}
+                <input
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={isUploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              {errors.image && (
+                <Typography color="error" variant="caption" sx={{ mt: 1 }}>
+                  {errors.image}
+                </Typography>
+              )}
+            </Box>
 
             <TextField
               label="Title"
@@ -368,6 +450,8 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
               size="small" // Smaller size for better mobile experience
               value={formData.title}
               onChange={handleChange}
+              error={!!errors.title}
+              helperText={errors.title}
             />
 
             <TextField
@@ -378,6 +462,19 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
               size="small"
               value={formData.price}
               onChange={handleChange}
+              error={!!errors.price}
+              helperText={errors.price}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                },
+              }}
             />
 
             <TextField
@@ -400,6 +497,8 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
               size="small"
               value={formData.description}
               onChange={handleChange}
+              error={!!errors.description}
+              helperText={errors.description}
             />
 
             {/* Button Container */}
@@ -444,6 +543,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
           </Box>
         </Box>
       </Modal>
+
     </DashboardContent>
   );
 }
@@ -511,5 +611,7 @@ export function useTable() {
     onChangePage,
     onSelectAllRows,
     onChangeRowsPerPage,
+    setRowsPerPage,
+    setPage
   };
 }

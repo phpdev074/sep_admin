@@ -90,11 +90,11 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                     //   href: '/',
                     //   icon: <Iconify width={22} icon="solar:home-angle-bold-duotone" />,
                     // },
-                    {
-                      label: 'Profile',
-                      href: '#',
-                      icon: <Iconify width={22} icon="solar:shield-keyhole-bold-duotone" />,
-                    },
+                    // {
+                    //   label: 'Profile',
+                    //   href: '#',
+                    //   icon: <Iconify width={22} icon="solar:shield-keyhole-bold-duotone" />,
+                    // },
                     // {
                     //   label: 'Settings',
                     //   href: '#',

@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
@@ -24,19 +24,19 @@ import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 
 export function OverviewAnalyticsView() {
 
-  const[activeUser,setActiveUser] =useState([])
+  const [activeUser, setActiveUser] = useState([])
   const [blockUser, setBlockUsers] = useState([])
-  const [monthlyUserData, setMonthlyUserData] =useState<number[]>([]);
+  const [monthlyUserData, setMonthlyUserData] = useState<number[]>([]);
 
 
 
 
 
   const fetchUsers = async () => {
-    const response = await api.get('/admin/getAllUsers'); 
+    const response = await api.get('/admin/getAllUsers');
     return response.data;
   }
-  
+
   const fetchActiveUsers = async () => {
     const response = await api.get('/admin/getActiveUsers');
     // return response.data;
@@ -44,56 +44,78 @@ export function OverviewAnalyticsView() {
   }
 
   const fetchBlockUsers = async () => {
-    const response = await api.get('/admin/getBlockUsers'); 
+    const response = await api.get('/admin/getBlockUsers');
     // return response.data;
     setBlockUsers(response?.data?.data?.totalBlockUsers)
 
   }
   const fetchPost = async () => {
-    const response = await api.get('/admin/getAllPost'); 
+    const response = await api.get('/admin/getAllPost');
+
     return response.data;
   }
 
   const fetchMonthlyUserData = async () => {
-    const response = await api.get('/admin/getUsersByMonth'); 
-    return response.data; 
+    const response = await api.get('/admin/getUsersByMonth');
+    return response.data;
   };
+
+  const fetchReportPost = async () => {
+    const response = await api.get('api/post/getReportedPosts')
+    return response.data.data.length;
+  }
+
+  const fetchProduct = async () => {
+    const response = await api.get('/api/product')
+    return response.data.data.totalCount;
+  }
 
 
   const { data: getAllUsers, error, isLoading } = useQuery({
     queryKey: ['/admin/getAllUsers'],
     queryFn: fetchUsers,
-    staleTime: 0, 
+    staleTime: 0,
   });
   const { data: activeUsers, error: activeUsersError, isLoading: activeUsersLoading } = useQuery({
     queryKey: ['admin/getActiveUsers'],
     queryFn: fetchActiveUsers,
     staleTime: 60000,
   });
-  const { data: blockUsers , error: blockUsersError, isLoading: blockUsersLoading } = useQuery({
+  const { data: blockUsers, error: blockUsersError, isLoading: blockUsersLoading } = useQuery({
     queryKey: ['admin/getBlockUsers'],
     queryFn: fetchBlockUsers,
     staleTime: 60000,
   });
-  const { data: getAllPost , error: getAllPostError, isLoading: getAllPostLoading } = useQuery({
+  const { data: getAllPost, error: getAllPostError, isLoading: getAllPostLoading } = useQuery({
     queryKey: ['admin/getAllPost'],
     queryFn: fetchPost,
     staleTime: 60000,
   });
-  const { data: monthlyUsers, error: monthlyUsersError, isLoading: monthlyUsersLoading} = useQuery({
+  const { data: monthlyUsers, error: monthlyUsersError, isLoading: monthlyUsersLoading } = useQuery({
     queryKey: ['admin/getUsersByMonth'],
     queryFn: fetchMonthlyUserData,
-    staleTime: 60000, 
+    staleTime: 60000,
+  });
+  const { data: getReportedPosts, error: getReportedPostsError, isLoading: getReportedPostsLoading } = useQuery({
+    queryKey: ['api/post/getReportedPosts'],
+    queryFn: fetchReportPost,
+    staleTime: 0,
   });
 
+  const { data: product, error: productError, isLoading: productLoading } = useQuery({
+    queryKey: ['/api/product'],
+    queryFn: fetchProduct,
+    staleTime: 0,
+  })
+  
   useEffect(() => {
     if (monthlyUsers) {
-      
-      const userCounts = Array(12).fill(0); 
-      monthlyUsers.forEach((entry:any) => {
-        userCounts[entry._id.month - 1] = entry.userCount; 
+
+      const userCounts = Array(12).fill(0);
+      monthlyUsers.forEach((entry: any) => {
+        userCounts[entry._id.month - 1] = entry.userCount;
       });
-      setMonthlyUserData(userCounts); 
+      setMonthlyUserData(userCounts);
     }
   }, [monthlyUsers]);
   if (isLoading)
@@ -140,7 +162,7 @@ export function OverviewAnalyticsView() {
             },
           }}
         />
-        
+
         {/* Middle rotating ring */}
         <Box
           sx={{
@@ -165,7 +187,7 @@ export function OverviewAnalyticsView() {
             },
           }}
         />
-        
+
         {/* Inner rotating ring */}
         <Box
           sx={{
@@ -190,7 +212,7 @@ export function OverviewAnalyticsView() {
             },
           }}
         />
-  
+
         {/* Pulsating particles */}
         <Box
           sx={{
@@ -221,7 +243,7 @@ export function OverviewAnalyticsView() {
             />
           ))}
         </Box>
-  
+
         {/* 3D Depth */}
         <Box
           sx={{
@@ -244,15 +266,13 @@ export function OverviewAnalyticsView() {
         />
       </Box>
     );
-  
-  
-  
+
   // if (error) return <p>Error: {error.message}</p>;
 
   const totalUsers = getAllUsers?.data?.length || 0
   const totalBlockedUsers = blockUser.length || 0
   const totalActiveUsers = totalUsers - totalBlockedUsers || 0
-  const totalPosts = getAllPost?.data?.length || 0
+  const totalPosts = getAllPost?.data?.total || 0
   // console.log("totalPosts",totalPosts )
 
 
@@ -323,6 +343,48 @@ export function OverviewAnalyticsView() {
           />
         </Grid>
 
+        <Grid xs={12} sm={6} md={3}>
+          <AnalyticsWidgetSummary
+            title="Report Posts"
+            percent={3.6}
+            total={getReportedPosts}
+            color="info"
+            icon={<img alt="icon" src="/assets/icons/glass/invoice.svg" />}
+            chart={{
+              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+              series: [56, 30, 23, 54, 47, 40, 62, 73],
+            }}
+          />
+        </Grid>
+
+        <Grid xs={12} sm={6} md={3}>
+          <AnalyticsWidgetSummary
+            title="Total Product"
+            percent={3.6}
+            total={product}
+            color="success"
+            icon={<img alt="icon" src="/assets/icons/glass/ic-new-product.svg" />}
+            chart={{
+              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+              series: [56, 30, 23, 54, 47, 40, 62, 73],
+            }}
+          />
+        </Grid>
+
+        <Grid xs={12} sm={6} md={3}>
+          {/* <AnalyticsWidgetSummary
+            title="Total Posts"
+            percent={3.6}
+            total={totalPosts}
+            color="error"
+            icon={<img alt="icon" src="/assets/icons/glass/ic-glass-message.svg" />}
+            chart={{
+              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+              series: [56, 30, 23, 54, 47, 40, 62, 73],
+            }}
+          /> */}
+        </Grid>
+
         <Grid xs={12} md={6} lg={4}>
           <AnalyticsCurrentVisits
             title="Current visits"
@@ -332,6 +394,8 @@ export function OverviewAnalyticsView() {
                 { label: 'Blocked Users', value: totalBlockedUsers },
                 { label: 'Active Users', value: totalActiveUsers },
                 { label: 'Total Posts', value: totalPosts },
+                { label: 'Report Posts', value: getReportedPosts },
+                { label: 'Total Product', value: product },
               ],
             }}
           />
@@ -344,8 +408,8 @@ export function OverviewAnalyticsView() {
             chart={{
               categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
               series: [
-                { name: 'Total User', data: monthlyUserData  },
-                
+                { name: 'Total User', data: monthlyUserData },
+
               ],
             }}
           />

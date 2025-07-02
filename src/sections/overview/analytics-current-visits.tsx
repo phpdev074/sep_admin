@@ -35,6 +35,8 @@ export function AnalyticsCurrentVisits({ title, subheader, chart, ...other }: Pr
     theme.palette.warning.main,
     theme.palette.secondary.dark,
     theme.palette.error.main,
+    theme.palette.info.main,
+    theme.palette.success.main,
   ];
 
   const chartOptions = useChart({

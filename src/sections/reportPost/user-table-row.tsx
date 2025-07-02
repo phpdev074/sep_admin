@@ -18,7 +18,7 @@ import Button from '@mui/material/Button';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { format } from 'date-fns';
-import { api,API_BASE_URL } from '../../api/url'
+import { api, API_BASE_URL } from '../../api/url'
 
 // ----------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ type UserTableRowProps = {
   onDeletePost: (id: string) => void;
 };
 
-export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserTableRowProps) {
+export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [editContent, setEditContent] = useState(row.content);
@@ -105,10 +105,10 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
   // };
 
   const handleSubmitEdit = () => {
-    
+
     console.log('Content:', editContent);
     console.log('Selected Image:', selectedImage);
-    handleCloseEditModal(); 
+    handleCloseEditModal();
   };
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -129,12 +129,12 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
         onDeletePost(id);
       } catch (error) {
         console.error("Error deleting post:", error);
-        
+
       }
     }
   }, [onDeletePost]);
 
-  const handleOpenImageModal = (src:any) => {
+  const handleOpenImageModal = (src: any) => {
     setSelectedImage(src);
     setOpenImageModal(true);
   };
@@ -143,92 +143,92 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
     setOpenImageModal(false);
     setSelectedImage(null);
   };
-  
+
 
 
   return (
     <>
 
-<Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
-  <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
-    🚩 Reported Post
-  </DialogTitle>
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
+          🚩 Reported Post
+        </DialogTitle>
 
-  <DialogContent dividers>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, px: 2, py: 3 }}>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, px: 2, py: 3 }}>
 
-      {/* Image */}
-      <Avatar
-        src={`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`}
-        alt="Reported Post Image"
-        variant="rounded"
-        sx={{
-          width: 140,
-          height: 140,
-          mx: 'auto',
-          boxShadow: 2,
-          border: '2px solid #d32f2f',
-          cursor: 'pointer',
+            {/* Image */}
+            <Avatar
+              src={`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`}
+              alt="Reported Post Image"
+              variant="rounded"
+              sx={{
+                width: 140,
+                height: 140,
+                mx: 'auto',
+                boxShadow: 2,
+                border: '2px solid #d32f2f',
+                cursor: 'pointer',
                 transition: 'transform 0.4s ease-in-out',
                 '&:hover': {
                   transform: 'scale(1.3)',
                   zIndex: 1,
                 },
-        }}
-      />
+              }}
+            />
 
-      {/* Post Content */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight="bold">Content:</Typography>
-        <Typography>{row.reportedPostId?.content || 'N/A'}</Typography>
-      </Box>
+            {/* Post Content */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold">Content:</Typography>
+              <Typography>{row?.reportedPostId?.content || 'N/A'}</Typography>
+            </Box>
 
-      {/* Reason */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight="bold">Reason:</Typography>
-        <Typography>{row.reason || 'N/A'}</Typography>
-      </Box>
+            {/* Reason */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold">Reason:</Typography>
+              <Typography>{row?.reason || 'N/A'}</Typography>
+            </Box>
 
-      {/* Details */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight="bold">Details:</Typography>
-        <Typography>{row.details || 'N/A'}</Typography>
-      </Box>
+            {/* Details */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold">Details:</Typography>
+              <Typography>{row?.details || 'N/A'}</Typography>
+            </Box>
 
-      {/* Reporter */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight="bold">Reporter Name:</Typography>
-        <Typography>{row.reporterId.name}</Typography>
-      </Box>
+            {/* Reporter */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold">Reporter Name:</Typography>
+              <Typography>{row?.reporterId?.name}</Typography>
+            </Box>
 
-      {/* Reported User */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight="bold">Reported User Name:</Typography>
-        <Typography>{row.reportedUserId.name}</Typography>
-      </Box>
+            {/* Reported User */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold">Reported User Name:</Typography>
+              <Typography>{row?.reportedUserId?.name}</Typography>
+            </Box>
 
-      {/* Created At */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight="bold">Reported Time:</Typography>
-        <Typography>
-          {row.timestamp ? format(new Date(row.timestamp), 'PPp') : 'N/A'}
-        </Typography>
-      </Box>
-    </Box>
-  </DialogContent>
+            {/* Created At */}
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold">Reported Time:</Typography>
+              <Typography>
+                {row?.timestamp ? format(new Date(row?.timestamp), 'PPp') : 'N/A'}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
 
-  <DialogActions sx={{ justifyContent: 'center', py: 2 }}>
-    <Button onClick={handleCloseEditModal} variant="outlined" color="primary">
-      Close
-    </Button>
-  </DialogActions>
-</Dialog>
+        <DialogActions sx={{ justifyContent: 'center', py: 2 }}>
+          <Button onClick={handleCloseEditModal} variant="outlined" color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
 
 
 
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-         <TableCell padding="checkbox">    {/* eslint-disable-line */}
+        <TableCell padding="checkbox">    {/* eslint-disable-line */}
 
         </TableCell>
 
@@ -240,13 +240,13 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
         </TableCell> */}
 
         <TableCell component="th" scope="row">
-            <Box gap={2} display="flex" alignItems="center">
+          <Box gap={2} display="flex" alignItems="center">
             <Box
               sx={{
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                overflow: 'visible', 
+                overflow: 'visible',
                 cursor: 'pointer',
                 transition: 'transform 0.4s ease-in-out',
                 '&:hover': {
@@ -256,22 +256,22 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
               }}
               onClick={() => handleOpenImageModal(`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`)}
             >
-                 <Avatar
-                src={`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`} 
+              <Avatar
+                src={`${API_BASE_URL}${row.reportedPostId?.files?.[0]?.file}`}
                 sx={{
                   width: '100%',
                   height: '100%',
                 }}
               />
-              </Box>
             </Box>
-          </TableCell>
+          </Box>
+        </TableCell>
 
         {/* <TableCell>{row.reason}</TableCell> */}
 
-        <TableCell>{row.reason}</TableCell>
+        <TableCell>{row?.reason}</TableCell>
 
-        <TableCell>{format(new Date(row.timestamp), 'PP')}</TableCell>
+        <TableCell>{format(new Date(row?.timestamp), 'PP')}</TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>
@@ -304,31 +304,31 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
           }}
         >
           <MenuItem onClick={handleOpenEditModal}>
-            
-            Edit
+
+            View Details
           </MenuItem>
 
           <MenuItem onClick={() => handleDelete(row?._id)} sx={{ color: 'error.main' }}>
-            
+
             Delete
           </MenuItem>
         </MenuList>
       </Popover>
       <Dialog open={openImageModal} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
-              <DialogContent sx={{ p: 0, bgcolor: 'black' }}>
-                <img
-                  src={selectedImage || undefined}
-                  alt="Post Preview"
-                  style={{
-                    width: '100%',
-                    maxHeight: '80vh',
-                    objectFit: 'contain',
-                    display: 'block',
-                    margin: 'auto',
-                  }}
-                  onClick={handleCloseImageModal}
-                />
-              </DialogContent>
+        <DialogContent sx={{ p: 0, bgcolor: 'black' }}>
+          <img
+            src={selectedImage || undefined}
+            alt="Post Preview"
+            style={{
+              width: '100%',
+              maxHeight: '80vh',
+              objectFit: 'contain',
+              display: 'block',
+              margin: 'auto',
+            }}
+            onClick={handleCloseImageModal}
+          />
+        </DialogContent>
       </Dialog>
     </>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -12,6 +13,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { useRouter } from 'src/routes/hooks';
 
 import { Iconify } from 'src/components/iconify';
+import axios from 'axios';
+import { api } from 'src/api/url';
 
 // ----------------------------------------------------------------------
 
@@ -19,10 +22,71 @@ export function SignInView() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
+  
+  const [email, setEmail] = useState('admin@gmail.com');
+  const [password, setPassword] = useState('123456');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [globalError, setGlobalError] = useState('');
 
-  const handleSignIn = useCallback(() => {
-    router.push('/dashboard');
-  }, [router]);
+  const validate = () => {
+    let valid = true;
+    setEmailError('');
+    setPasswordError('');
+    setGlobalError('');
+
+    if (!email) {
+      setEmailError('Email is required');
+      valid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      valid = false;
+    }
+
+    return valid;
+  };
+
+  const handleSignIn = useCallback(async () => {
+    if (!validate()) return;
+
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      const response = await api.post('/admin/loginAdmin', {
+        email,
+        password,
+      });
+
+      const { token, admin } = response.data.data;
+
+      // Store token in localStorage or cookie
+      localStorage.setItem('token', token);
+      
+
+      router.push('/dashboard');
+    } catch (error) {
+  console.error('Login error:', error);
+
+  const response = error?.response;
+  const message = response?.data?.message || 'Login failed. Please try again.';
+
+  if (message === 'Email not found') {
+    setEmailError(message);
+  } else if (message === 'Invalid password') {
+    setPasswordError(message);
+  } else {
+    setGlobalError(message);
+  }
+}
+ finally {
+      setLoading(false);
+    }
+  }, [email, password, router]);
 
   const renderForm = (
     <Box display="flex" flexDirection="column" alignItems="flex-end">
@@ -30,8 +94,12 @@ export function SignInView() {
         fullWidth
         name="email"
         label="Email address"
-        defaultValue="hello@gmail.com"
+        defaultValue="admin@gmail.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         InputLabelProps={{ shrink: true }}
+        error={!!emailError}
+        helperText={emailError}
         sx={{ mb: 3 }}
       />
 
@@ -43,9 +111,13 @@ export function SignInView() {
         fullWidth
         name="password"
         label="Password"
-        defaultValue="@demo1234"
+        defaultValue="123456"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
         InputLabelProps={{ shrink: true }}
         type={showPassword ? 'text' : 'password'}
+        error={!!passwordError}
+        helperText={passwordError}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">

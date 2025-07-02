@@ -66,18 +66,18 @@ export function ReportPostView() {
   const [userData, setUserData] = useState<Post[]>([]);
 
   const fetchUsers = async () => {
-    const response = await api.get('/api/post/getReportedPosts'); 
+    const response = await api.get('/api/post/getReportedPosts');
     setUserData(response?.data?.data)
-    console.log("===>>>",response?.data?.data)
+    // console.log("===>>>",response?.data?.data)
     // return response.data;
   }
-    const { data: getReportedPosts, error, isLoading } = useQuery({
-      queryKey: ['/api/post/getReportedPosts'],
-      queryFn: fetchUsers,  
-      // staleTime: 0, 
-    });
+  const { data: getReportedPosts, error, isLoading } = useQuery({
+    queryKey: ['/api/post/getReportedPosts'],
+    queryFn: fetchUsers,
+    // staleTime: 0, 
+  });
   const table = useTable();
-    
+
   const [filterName, setFilterName] = useState('');
   if (isLoading) return (
     <Box
@@ -86,13 +86,13 @@ export function ReportPostView() {
       alignItems="center"
       height="100vh"
     >
-      <CircularProgress /> 
+      <CircularProgress />
     </Box>
   );
   const dataFiltered: UserProps[] = applyFilter({
 
     // inputData: _users,//-
-    inputData: userData, 
+    inputData: userData,
 
     comparator: getComparator(table.order, table.orderBy),
     filterName,
@@ -106,10 +106,10 @@ export function ReportPostView() {
 
   return (
     <DashboardContent>
-      
+
 
       <Card>
-        
+
 
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
@@ -137,44 +137,44 @@ export function ReportPostView() {
                 ]}
               />
               <TableBody>
-  {userData.length === 0 && !notFound ? (
-    <TableRow>
-      <TableCell colSpan={12} align="center">
-        No users found.
-      </TableCell>
-    </TableRow>
-  ) : (
-    <>
-      {userData
-        .slice(
-          table.page * table.rowsPerPage,
-          table.page * table.rowsPerPage + table.rowsPerPage
-        )
-        .map((row: any) => (
-          <UserTableRow
-            key={row?._id}
-            row={row}
-            selected={table.selected.includes(row?._id)}
-            onSelectRow={() => table.onSelectRow(row?._id)}
-            onDeletePost={handleRemovePost}
-          />
-        ))}
+                {userData.length === 0 && !notFound ? (
+                  <TableRow>
+                    <TableCell colSpan={12} align="center">
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <>
+                    {userData
+                      .slice(
+                        table.page * table.rowsPerPage,
+                        table.page * table.rowsPerPage + table.rowsPerPage
+                      )
+                      .map((row: any) => (
+                        <UserTableRow
+                          key={row?._id}
+                          row={row}
+                          selected={table.selected.includes(row?._id)}
+                          onSelectRow={() => table.onSelectRow(row?._id)}
+                          onDeletePost={handleRemovePost}
+                        />
+                      ))}
 
-      <TableEmptyRows
-        height={68}
-        emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
-      />
-    </>
-  )}
+                    <TableEmptyRows
+                      height={68}
+                      emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                    />
+                  </>
+                )}
 
-  {notFound && (
-    <TableRow>
-      <TableCell colSpan={12} align="center">
-        <TableNoData searchQuery={filterName} />
-      </TableCell>
-    </TableRow>
-  )}
-</TableBody>
+                {notFound && (
+                  <TableRow>
+                    <TableCell colSpan={12} align="center">
+                      <TableNoData searchQuery={filterName} />
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
 
             </Table>
           </TableContainer>
