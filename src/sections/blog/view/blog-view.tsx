@@ -41,10 +41,10 @@ export function SettingView() {
   const [savingAdmin, setSavingAdmin] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
-const [passwordUpdated, setPasswordUpdated] = useState(false);
-const [passwordError, setPasswordError] = useState('');
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
-const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
 
   useEffect(() => {
@@ -122,37 +122,37 @@ const [showPassword, setShowPassword] = useState(false);
   };
 
   const handleUpdatePassword = async () => {
-  setPasswordError('');
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) throw new Error('No auth token found');
+    setPasswordError('');
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No auth token found');
 
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters long.');
-      return;
-    }
-
-    await api.put(
-      '/admin/editAdmin',
-      { password: newPassword },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      if (!newPassword || newPassword.length < 6) {
+        setPasswordError('Password must be at least 6 characters long.');
+        return;
       }
-    );
 
-    setPasswordUpdated(true);
-    setNewPassword('');
-    setTimeout(() => setPasswordUpdated(false), 3000); // Reset message after 3s
-  } catch (error: any) {
-    setPasswordError(error.response?.data?.message || error.message);
-  }
-};
+      await api.put(
+        '/admin/editAdmin',
+        { password: newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-const handleTogglePasswordVisibility = () => {
-  setShowPassword((prev) => !prev);
-};
+      setPasswordUpdated(true);
+      setNewPassword('');
+      setTimeout(() => setPasswordUpdated(false), 3000); // Reset message after 3s
+    } catch (error: any) {
+      setPasswordError(error.response?.data?.message || error.message);
+    }
+  };
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
 
   return (
@@ -178,8 +178,8 @@ const handleTogglePasswordVisibility = () => {
           <Typography variant="h6">Admin Info</Typography>
           {loadingAdmin ? (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight={100}>
-    <CircularProgress />
-  </Box>
+              <CircularProgress />
+            </Box>
           ) : errorAdmin ? (
             <Typography color="error">{errorAdmin}</Typography>
           ) : (
@@ -197,82 +197,92 @@ const handleTogglePasswordVisibility = () => {
                 </Button>
               )}
               <Typography variant="subtitle1" mt={3}>
-    Change Password
-  </Typography>
+                Change Password
+              </Typography>
 
-  <TextField
-  label="New Password"
-  type={showPassword ? 'text' : 'password'}
-  value={newPassword}
-  onChange={(e) => setNewPassword(e.target.value)}
-  fullWidth
-  size="small"
-  InputProps={{
-    endAdornment: (
-      <Button
-        onClick={handleTogglePasswordVisibility}
-        size="small"
-        sx={{ minWidth: 'auto', ml: 1 }}
-      >
-        {showPassword ? (
-          <Iconify icon="eva:eye-off-fill" width={20} />
-        ) : (
-          <Iconify icon="eva:eye-fill" width={20} />
-        )}
-      </Button>
-    ),
-  }}
-/>
+              <TextField
+                label="New Password"
+                type={showPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                fullWidth
+                size="small"
+                InputProps={{
+                  endAdornment: (
+                    <Button
+                      onClick={handleTogglePasswordVisibility}
+                      size="small"
+                      sx={{ minWidth: 'auto', ml: 1 }}
+                    >
+                      {showPassword ? (
+                        <Iconify icon="eva:eye-off-fill" width={20} />
+                      ) : (
+                        <Iconify icon="eva:eye-fill" width={20} />
+                      )}
+                    </Button>
+                  ),
+                }}
+              />
 
 
-  {passwordError && (
-    <Typography color="error" variant="body2">
-      {passwordError}
-    </Typography>
-  )}
+              {passwordError && (
+                <Typography color="error" variant="body2">
+                  {passwordError}
+                </Typography>
+              )}
 
-  {passwordUpdated && (
-    <Typography color="success.main" variant="body2">
-      Password updated successfully!
-    </Typography>
-  )}
+              {passwordUpdated && (
+                <Typography color="success.main" variant="body2">
+                  Password updated successfully!
+                </Typography>
+              )}
 
-  <Button
-    variant="contained"
-    size="small"
-    sx={{ mt: 1 }}
-    onClick={handleUpdatePassword}
-    disabled={!newPassword}
-  >
-    Update Password
-  </Button>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{ mt: 1 }}
+                onClick={handleUpdatePassword}
+                disabled={!newPassword}
+              >
+                Update Password
+              </Button>
             </>
           )}
         </Box>
 
-        {Object.entries(editableSections).map(([key, value]) => (
-          <Box
-            key={key}
-            mb={2}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            sx={{
-              width: 250,
-              height: 60,
-              borderRadius: 2,
-              boxShadow: 2,
-              backgroundColor: '#f0f0f0',
-              cursor: 'pointer',
-              '&:hover': {
-                backgroundColor: '#e0e0e0',
-              },
-            }}
-            onClick={() => handleClickOpenDialog(key as Section)}
-          >
-            <Typography variant="h6">{value}</Typography>
-          </Box>
-        ))}
+        <Box
+          display="flex"
+          flexDirection="row"
+          justifyContent="center"
+          alignItems="center"
+          gap={2}
+          flexWrap="wrap" // Optional: to allow wrapping on small screens
+          mb={4}
+        >
+          {Object.entries(editableSections).map(([key, value]) => (
+            <Box
+              key={key}
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              sx={{
+                width: 250,
+                height: 60,
+                borderRadius: 2,
+                boxShadow: 2,
+                backgroundColor: '#f0f0f0',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#e0e0e0',
+                },
+              }}
+              onClick={() => handleClickOpenDialog(key as Section)}
+            >
+              <Typography variant="h6">{value}</Typography>
+            </Box>
+          ))}
+        </Box>
+
       </Box>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth sx={{ minHeight: '450px' }}>
