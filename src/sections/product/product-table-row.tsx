@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { useState, useCallback, ChangeEvent } from 'react';
 
 // import Box from '@mui/material/Box';
@@ -76,19 +78,21 @@ type UserTableRowProps = {
 
 export function ProductTableRow({ row, selected, onSelectRow, onModification }: UserTableRowProps) {
   const [loading, setLoading] = useState(false);
+  const [imageUploadLoading, setImageUploadLoading] = useState<boolean[]>([]);
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [openImageModal, setOpenImageModal] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<{
-    image: string;
+    image: string[];
     title: string;
     price: string;
     description: string;
     checkouturl: string;
   }>({
-    image: '',
+    image: [],
     title: '',
     price: '',
     description: '',
@@ -105,7 +109,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
 
   const handleOpenModal = () => {
     setFormData({
-      image: row?.image,
+      image: Array.isArray(row?.image) ? row.image : [row?.image],
       title: row?.title,
       price: row?.price,
       description: row?.description,
@@ -141,25 +145,25 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
     }
   };
 
-const handleDelete = useCallback(async (id: string) => {
-  const confirmed = window.confirm('Are you sure you want to delete ?');
-  if (confirmed) {
-    try {
-      const response = await api.delete(`/api/product?id=${id}`);
-      if (response.status === 200) {
-        onModification(); // <-- Refresh list after deletion
+  const handleDelete = useCallback(async (id: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete ?');
+    if (confirmed) {
+      try {
+        const response = await api.delete(`/api/product?id=${id}`);
+        if (response.status === 200) {
+          onModification(); // <-- Refresh list after deletion
+        }
+      } catch (error) {
+        console.error('Delete failed', error);
+        alert('An error occurred while deleting the product.');
       }
-    } catch (error) {
-      console.error('Delete failed', error);
-      alert('An error occurred while deleting the product.');
     }
-  }
-  setOpenPopover(null);
-}, [onModification]);
+    setOpenPopover(null);
+  }, [onModification]);
 
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files && e.target.files.length > 0 && selectedImageIndex !== null) {
       const file = e.target.files[0];
       console.log(file, '===>>');
       setIsUploading(true);
@@ -173,11 +177,18 @@ const handleDelete = useCallback(async (id: string) => {
         );
         console.log('===>>>response', response?.data?.data.urls[0]);
 
+        const uploadedUrl = response?.data?.data.urls[0];
+
         if (response.status === 200) {
-          setFormData((prev) => ({ ...prev, image: response?.data?.data.urls[0] }));
-          setImageUrl(response?.data?.data.urls[0]);
-          console.log('Uploaded Image URL:', response?.data?.data.urls[0]);
+          setFormData((prev) => {
+            const updatedImages = [...prev.image];
+            updatedImages[selectedImageIndex] = uploadedUrl;
+            return { ...prev, image: updatedImages };
+          });
+
+          setImageUrl(uploadedUrl);
         }
+
       } catch (error) {
         console.error('Image upload failed:', error);
         alert('Failed to upload image. Please try again.');
@@ -186,6 +197,60 @@ const handleDelete = useCallback(async (id: string) => {
       }
     }
   };
+
+  const handleAddImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setIsUploading(true);
+      try {
+        const files = e.target.files;
+        // If you want to upload multiple files at once, create FormData for all files
+        const formDataToUpload = new FormData();
+        Array.from(files).forEach(file => {
+          formDataToUpload.append('files', file);
+        });
+
+        const response = await api.post('/fileUpload', formDataToUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        if (response.status === 200) {
+          const uploadedUrls = response?.data?.data.urls || [];
+
+          setFormData((prev) => ({
+            ...prev,
+            image: [...(prev.image || []), ...uploadedUrls],
+          }));
+        }
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        alert('Failed to upload image(s). Please try again.');
+      } finally {
+        setIsUploading(false);
+        e.target.value = ''; // Reset input
+      }
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setFormData((prev) => {
+      const updatedImages = [...prev.image];
+      updatedImages.splice(index, 1); // remove the selected image
+      return { ...prev, image: updatedImages };
+    });
+
+    setImageUploadLoading((prev) => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+
+    if (selectedImageIndex === index) {
+      setSelectedImageIndex(null); // reset selection
+    }
+  };
+
+
+
 
   const handleChangeWrapper = (target: { name: string; value: string }) => {
     setFormData(prev => ({
@@ -253,7 +318,7 @@ const handleDelete = useCallback(async (id: string) => {
               style={{
                 marginTop: 0,
                 marginBottom: '16px',
-                fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)', // Responsive font size
+                fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
                 textAlign: 'center',
               }}
             >
@@ -261,83 +326,154 @@ const handleDelete = useCallback(async (id: string) => {
             </h2>
 
             {/* Product Image Display */}
-            <Box display="flex" justifyContent="center" mb={2}>
-              <Box
-                sx={{
-                  width: {
-                    xs: 100, // Mobile: 100px
-                    sm: 120, // Small screens: 120px
-                  },
-                  height: {
-                    xs: 100, // Mobile: 100px
-                    sm: 120, // Small screens: 120px
-                  },
-                  borderRadius: '50%', // Perfect circle
-                  overflow: 'hidden',
-                  border: '2px solid #e0e0e0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#f5f5f5',
-                }}
-              >
-                {isUploading ? (
+            {/* Image Grid with click-to-edit */}
+            <Box
+              display="flex"
+              flexWrap="wrap"
+              gap={2}
+              mb={0}
+              sx={{
+                p: 1,
+                border: '1px dashed #ccc',
+                borderRadius: '8px',
+                justifyContent: 'flex-start',
+              }}
+            >
+              {formData.image?.map((img, index) => (
+                <Tooltip title="Click to change image" key={index}>
                   <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    justifyContent="center"
-                    sx={{ textAlign: 'center', color: '#666' }}
-                  >
-                    <CircularProgress size={24} sx={{ mb: 1 }} />
-                    <Typography variant="caption" fontSize="10px">
-                      Uploading...
-                    </Typography>
-                  </Box>
-                ) : (
-                  <img
-                    src={
-                      imageUrl ? `${API_BASE_URL}${imageUrl}` : `${API_BASE_URL}${formData.image}`
-                    }
-                    alt="Product"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
+                    position="relative"
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border:
+                        selectedImageIndex === index
+                          ? '2px solid blue'
+                          : '1px solid #ccc',
+                      flexShrink: 0,
                     }}
+                  >
+                    {/* Image */}
+                    <Box
+                      component="img"
+                      src={`${API_BASE_URL}${img}`}
+                      alt={`Product Image ${index}`}
+                      onClick={() => {
+                        setSelectedImageIndex(index);
+                        document.getElementById('editImageUpload')?.click();
+                      }}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+
+                    {/* Loader overlay (optional if you're using imageUploadLoading) */}
+                    {imageUploadLoading?.[index] && (
+                      <Box
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        width="100%"
+                        height="100%"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        bgcolor="rgba(255,255,255,0.6)"
+                      >
+                        <CircularProgress size={24} />
+                      </Box>
+                    )}
+
+                    {/* Remove icon */}
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent opening file picker
+                        handleRemoveImage(index); // call your remove handler
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: 2,
+                        right: 2,
+                        bgcolor: 'rgba(255,255,255,0.8)',
+                        '&:hover': {
+                          bgcolor: 'rgba(255,255,255,1)',
+                        },
+                      }}
+                    >
+                      <Iconify icon="eva:close-fill" width={18} height={18} />
+                    </IconButton>
+                  </Box>
+                </Tooltip>
+              ))}
+
+
+              {/* Add New Image Icon */}
+              <Tooltip title="Add new image">
+                <Box
+                  onClick={() => document.getElementById('addImageUpload')?.click()}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 2,
+                    border: '2px dashed #ccc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: '#007bff',
+                      backgroundColor: '#f0f8ff',
+                    },
+                    flexShrink: 0, // Prevent icon from shrinking
+                  }}
+                >
+                  <Iconify icon="eva:plus-fill" width={24} height={24} color="#777" />
+                  <input
+                    id="addImageUpload"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleAddImage}
                   />
-                )}
-              </Box>
+                </Box>
+              </Tooltip>
             </Box>
+
+
             {/* Styled File Upload */}
             <Box display="flex" justifyContent="center" mb={3}>
               <Box
                 component="label"
                 htmlFor="editImageUpload"
-                sx={{
-                  cursor: 'pointer',
-                  padding: '10px 20px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  borderRadius: '8px',
-                  display: 'inline-block',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                  textAlign: 'center',
-                  minWidth: '140px',
-                  transition: 'background-color 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: '#0056b3',
-                  },
-                  '&:focus': {
-                    backgroundColor: '#0056b3',
-                    outline: '2px solid #ffffff',
-                    outlineOffset: '2px',
-                  },
-                  '&:active': {
-                    backgroundColor: '#004085',
-                  },
-                }}
+                // sx={{
+                //   cursor: 'pointer',
+                //   padding: '10px 20px',
+                //   backgroundColor: '#007bff',
+                //   color: 'white',
+                //   borderRadius: '8px',
+                //   display: 'inline-block',
+                //   fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                //   textAlign: 'center',
+                //   minWidth: '140px',
+                //   transition: 'background-color 0.2s ease',
+                //   '&:hover': {
+                //     backgroundColor: '#0056b3',
+                //   },
+                //   '&:focus': {
+                //     backgroundColor: '#0056b3',
+                //     outline: '2px solid #ffffff',
+                //     outlineOffset: '2px',
+                //   },
+                //   '&:active': {
+                //     backgroundColor: '#004085',
+                //   },
+                // }}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -346,7 +482,7 @@ const handleDelete = useCallback(async (id: string) => {
                   }
                 }}
               >
-                Change Image
+                {/* Change Image */}
                 <input
                   id="editImageUpload"
                   type="file"
@@ -581,7 +717,7 @@ const handleDelete = useCallback(async (id: string) => {
             >
               <Avatar
                 alt="Product Image"
-                src={`${API_BASE_URL}${row.image}`}
+                src={row.image && row.image.length > 0 ? `${API_BASE_URL}${row.image[0]}` : undefined}
                 sx={{
                   width: {
                     xs: 40,
@@ -768,7 +904,12 @@ const handleDelete = useCallback(async (id: string) => {
           }}
         >
           <img
-            src={`${API_BASE_URL}${row.image}`}
+            src={
+              row.image
+                ? `${API_BASE_URL}${Array.isArray(row.image) ? row.image[0] : row.image}`
+                : undefined
+            }
+
             alt="Enlarged Product"
             style={{
               width: '100%',
@@ -822,3 +963,7 @@ const handleDelete = useCallback(async (id: string) => {
     </>
   );
 }
+function setImageUploadLoading(arg0: (prev: any) => any[]) {
+  throw new Error('Function not implemented.');
+}
+

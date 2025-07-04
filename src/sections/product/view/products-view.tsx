@@ -23,6 +23,8 @@ import { TableNoData } from 'src/sections/blockUser/table-no-data';
 import { applyFilter, getComparator } from 'src/sections/blockUser/utils';
 import { ProductTableRow } from '../product-table-row';
 import { InputAdornment } from '@mui/material';
+import { IconButton } from '@mui/material';
+import { Iconify } from 'src/components/iconify';
 
 export type ProductItemProps = {
   _id: string;
@@ -47,13 +49,14 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
   const [openModal, setOpenModal] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     price: '',
     description: '',
     checkouturl: '',
-    image: '',
+    image: [] as string[],
   });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -78,7 +81,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     try {
       const response = await api.get(`/api/product?limit=${limit}&page=${page + 1}`);
       setUserData(response?.data?.data?.data || []);
-      
+
       setTotal(response?.data?.data?.totalCount || 0);
       return response.data?.data?.users || [];
     } catch (err: any) {
@@ -106,40 +109,50 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
   if (isLoading) return <Typography>Loading...</Typography>;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      // console.log('====>>>>file', file);
-      const formData = new FormData();
-      formData.append('image', file);
-      // console.log('===>>>>>', formData);
-      setIsUploading(true)
+    const files = e.target.files;
+
+    if (files && files.length > 0) {
+      setIsUploading(true);
+      const uploadedUrls: string[] = [];
+
       try {
-        const response = await api.post(
-          '/fileUpload',
-          { files: file },
-          {
-            headers: { 'Content-Type': 'multipart/form-data' },
+        for (const file of Array.from(files)) {
+          const formData = new FormData();
+          formData.append('image', file);
+
+          const response = await api.post(
+            '/fileUpload',
+            { files: file },
+            {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            }
+          );
+
+          if (response.status === 200) {
+            const uploadedUrl = response?.data?.data?.urls?.[0];
+            uploadedUrls.push(uploadedUrl);
           }
-        );
-        // console.log('===>>>response', response?.data?.data.urls[0]);
-        if (response.status === 200) {
-          setFormData((prev) => ({ ...prev, image: response?.data?.data.urls[0] }));
-          setImageUrl(response?.data?.data.urls[0]);
-          console.log('Uploaded Image URL:', response?.data?.data.urls[0]);
         }
+
+        setImageUrls((prev) => [...prev, ...uploadedUrls]);
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.image, ...uploadedUrls],
+        }));
       } catch (error) {
         console.error('Image upload failed:', error);
-        alert('Failed to upload image. Please try again.');
+        alert('Failed to upload one or more images.');
       } finally {
-        setIsUploading(false)
+        setIsUploading(false);
       }
     }
   };
 
+
   const notFound = !!filterName;
 
   const handleSubmit = async () => {
-    console.log("===<<<")
+    
     const validationErrors: {
       image: string;
       title: string;
@@ -153,7 +166,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     };
 
 
-    if (!imageUrl) {
+    if (!imageUrls) {
       validationErrors.image = 'Image is required';
     }
 
@@ -182,7 +195,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     setLoading(true);
     try {
       const response = await api.post(`/api/product`, formData);
-      console.log('response', response);
+      // console.log('response', response);
       if (response.status === 200) {
         handleCloseModal();
         fetchUsers(pagination.limit, pagination.page);
@@ -191,9 +204,9 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
           price: '',
           description: '',
           checkouturl: '',
-          image: '',
+          image: [],
         });
-        setImageUrl(null)
+        setImageUrls([])
       } else {
         // alert('Failed to update product. Please try again.');
       }
@@ -205,16 +218,37 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     }
   };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setErrors({
-      image: '',
-      title: '',
-      price: '',
-      description: '',
-    });
+const handleCloseModal = () => {
+  setOpenModal(false);
+  setErrors({
+    image: '',
+    title: '',
+    price: '',
+    description: '',
+  });
+  setFormData({
+    title: '',
+    price: '',
+    description: '',
+    checkouturl: '',
+    image: [], // or '' if you store a single image string
+  });
+  setImageUrl(null);      // if you have this for single image preview
+  setImageUrls([]);       // if you use this for multiple images
+};
+ 
 
+  const handleRemoveImage = (indexToRemove: number) => {
+    const updatedImages = imageUrls.filter((_, idx) => idx !== indexToRemove);
+    setImageUrls(updatedImages);
+
+    // Update formData too
+    setFormData((prev) => ({
+      ...prev,
+      image: updatedImages, // or images if you renamed it
+    }));
   };
+
 
   return (
     <DashboardContent>
@@ -359,52 +393,58 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
             </h2>
 
             <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-              {/* Image Preview */}
+              {/* Multiple Image Previews */}
               <Box
                 sx={{
-                  width: {
-                    xs: 100, // Mobile: smaller image
-                    sm: 120, // Small screens and up: larger image
-                  },
-                  height: {
-                    xs: 100,
-                    sm: 120,
-                  },
-                  borderRadius: '50%',
-                  overflow: 'hidden',
                   display: 'flex',
+                  gap: 2,
+                  flexWrap: 'wrap',
                   justifyContent: 'center',
-                  alignItems: 'center',
-                  border: '2px solid #ccc',
-                  backgroundColor: '#f4f4f4',
                   mb: 2,
                 }}
               >
-                {isUploading ? (
-                  // Loading state
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    justifyContent="center"
-                    sx={{ textAlign: 'center', color: '#666' }}
-                  >
-                    <CircularProgress size={24} sx={{ mb: 0.5 }} />
-                    <Typography variant="caption" fontSize="10px">
-                      Uploading...
-                    </Typography>
-                  </Box>
+                {imageUrls.length > 0 ? (
+                  imageUrls.map((url, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        position: 'relative',
+                        width: 80,
+                        height: 80,
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        border: '2px solid #ccc',
+                        backgroundColor: '#f4f4f4',
+                      }}
+                    >
+                      <img
+                        src={`${API_BASE_URL}${url}`}
+                        alt={`Uploaded ${idx}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveImage(idx)}
+                        sx={{
+                          position: 'absolute',
+                          top: -1,
+                          right: -1,
+                          backgroundColor: '#fff',
+                          border: '1px solid #ccc',
+                          boxShadow: 1,
+                          '&:hover': {
+                            backgroundColor: '#f0f0f0',
+                          },
+                        }}
+                      >
+                        <Iconify icon="eva:close-fill" width={15} height={15} />
+                      </IconButton>
+                    </Box>
+                  ))
                 ) : (
-                  // Image display
-                  <img
-                    src={imageUrl ? `${API_BASE_URL}${imageUrl}` : 'assets/icons/glass/queue.png'}
-                    alt="Product"
-                    style={{
-                      width: imageUrl ? '100%' : '20%',
-                      height: imageUrl ? '100%' : '20%',
-                      objectFit: 'cover',
-                    }}
-                  />
+                  <Typography variant="caption" color="textSecondary">
+                    No images uploaded yet.
+                  </Typography>
                 )}
               </Box>
 
@@ -418,18 +458,19 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
                   color: 'white',
                   borderRadius: '8px',
                   display: 'inline-block',
-                  fontSize: 'clamp(0.875rem, 2vw, 1rem)', // Responsive font size
+                  fontSize: 'clamp(0.875rem, 2vw, 1rem)',
                   textAlign: 'center',
                   minWidth: '120px',
                   opacity: isUploading ? 0.7 : 1,
                   transition: 'all 0.3s ease',
                 }}
               >
-                {isUploading ? 'Uploading...' : 'Upload Image'}
+                {isUploading ? 'Uploading...' : 'Upload Images'}
                 <input
                   id="imageUpload"
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleFileChange}
                   disabled={isUploading}
                   style={{ display: 'none' }}
@@ -441,6 +482,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
                 </Typography>
               )}
             </Box>
+
 
             <TextField
               label="Title"
