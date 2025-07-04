@@ -11,7 +11,7 @@ import { _products, _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { useQuery } from '@tanstack/react-query';
 import Button from '@mui/material/Button';
-import { Card, CircularProgress, Table, TablePagination } from '@mui/material';
+import { Card, CircularProgress, MenuItem, Table, TablePagination } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import TableContainer from '@mui/material/TableContainer';
 import { UserTableHead } from 'src/sections/blockUser/user-table-head';
@@ -57,6 +57,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     description: '',
     checkouturl: '',
     image: [] as string[],
+    shippingType: '',
   });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -137,7 +138,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
         setImageUrls((prev) => [...prev, ...uploadedUrls]);
         setFormData((prev) => ({
           ...prev,
-          images: [...prev.image, ...uploadedUrls],
+          image: [...prev.image, ...uploadedUrls],
         }));
       } catch (error) {
         console.error('Image upload failed:', error);
@@ -152,7 +153,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
   const notFound = !!filterName;
 
   const handleSubmit = async () => {
-    
+
     const validationErrors: {
       image: string;
       title: string;
@@ -205,6 +206,7 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
           description: '',
           checkouturl: '',
           image: [],
+          shippingType: '',
         });
         setImageUrls([])
       } else {
@@ -218,34 +220,34 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     }
   };
 
-const handleCloseModal = () => {
-  setOpenModal(false);
-  setErrors({
-    image: '',
-    title: '',
-    price: '',
-    description: '',
-  });
-  setFormData({
-    title: '',
-    price: '',
-    description: '',
-    checkouturl: '',
-    image: [], // or '' if you store a single image string
-  });
-  setImageUrl(null);      // if you have this for single image preview
-  setImageUrls([]);       // if you use this for multiple images
-};
- 
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setErrors({
+      image: '',
+      title: '',
+      price: '',
+      description: '',
+    });
+    setFormData({
+      title: '',
+      price: '',
+      description: '',
+      checkouturl: '',
+      image: [],
+      shippingType: '',
+    });
+    setImageUrl(null);
+    setImageUrls([]);
+  };
+
 
   const handleRemoveImage = (indexToRemove: number) => {
     const updatedImages = imageUrls.filter((_, idx) => idx !== indexToRemove);
     setImageUrls(updatedImages);
 
-    // Update formData too
     setFormData((prev) => ({
       ...prev,
-      image: updatedImages, // or images if you renamed it
+      image: updatedImages,
     }));
   };
 
@@ -500,6 +502,7 @@ const handleCloseModal = () => {
               label="Price"
               name="price"
               fullWidth
+              type='number'
               margin="normal"
               size="small"
               value={formData.price}
@@ -521,7 +524,7 @@ const handleCloseModal = () => {
 
             <TextField
               label="CheckOut URL"
-              name="checkout_URL"
+              name="checkouturl"
               fullWidth
               margin="normal"
               size="small"
@@ -542,6 +545,20 @@ const handleCloseModal = () => {
               error={!!errors.description}
               helperText={errors.description}
             />
+
+            <TextField
+              select
+              label="Shipping Type"
+              name="shippingType"
+              fullWidth
+              margin="normal"
+              size="small"
+              value={formData.shippingType}
+              onChange={handleChange}
+            >
+              <MenuItem value="free">Free</MenuItem>
+              <MenuItem value="shipping">Shipping</MenuItem>
+            </TextField>
 
             {/* Button Container */}
             <Box

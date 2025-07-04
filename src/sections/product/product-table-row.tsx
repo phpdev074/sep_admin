@@ -57,6 +57,7 @@ interface Post {
 }
 
 export type UserProps = {
+  shippingType: unknown;
   _id: string;
   image: string;
   title: string;
@@ -86,6 +87,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
   const [openImageModal, setOpenImageModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<{
+    shippingType: unknown;
     image: string[];
     title: string;
     price: string;
@@ -97,6 +99,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
     price: '',
     description: '',
     checkouturl: '',
+    shippingType: '',
   });
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -114,6 +117,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
       price: row?.price,
       description: row?.description,
       checkouturl: row?.checkouturl || '',
+      shippingType: row?.shippingType,
     });
     setOpenModal(true);
     handleClosePopover();
@@ -582,6 +586,28 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
               }}
             />
 
+            <TextField
+              select
+              label="Shipping Type"
+              name="shippingType"
+              fullWidth
+              margin="normal"
+              size="small"
+              value={formData.shippingType}
+              onChange={handleChange}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  fontSize: {
+                    xs: '0.875rem',
+                    sm: '1rem',
+                  },
+                },
+              }}
+            >
+              <MenuItem value="free">Free</MenuItem>
+              <MenuItem value="shipping">Shipping</MenuItem>
+            </TextField>
+
             {/* Button Container */}
             <Box
               display="flex"
@@ -892,35 +918,88 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
       </TableRow>
 
       <Modal open={openImageModal} onClose={() => setOpenImageModal(false)}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            outline: 'none',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-          }}
-        >
-          <img
-            src={
-              row.image
-                ? `${API_BASE_URL}${Array.isArray(row.image) ? row.image[0] : row.image}`
-                : undefined
-            }
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      outline: 'none',
+      bgcolor: 'rgba(0, 0, 0, 0.6)',
+      p: 3,
+      borderRadius: 2,
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+    }}
+  >
+    {/* Close Icon */}
+    <IconButton
+      onClick={() => setOpenImageModal(false)}
+      sx={{
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        backgroundColor: '#fff',
+        border: '1px solid #ccc',
+        boxShadow: 1,
+        zIndex: 1,
+        '&:hover': {
+          backgroundColor: '#f0f0f0',
+        },
+      }}
+      size="small"
+    >
+      <Iconify icon="eva:close-fill" width={15} height={15} />
+    </IconButton>
 
-            alt="Enlarged Product"
-            style={{
-              width: '100%',
-              height: 'auto',
-              maxHeight: '90vh',
-              borderRadius: '8px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-            }}
-          />
-        </Box>
-      </Modal>
+    {/* Image Grid */}
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2,
+        justifyContent: 'center',
+        mt: 2,
+      }}
+    >
+      {(Array.isArray(row.image) ? row.image : [row.image]).map((imgUrl: string, idx: number) => (
+        <Box
+  key={idx}
+  sx={{
+    width: 100,
+    height: 100,
+    borderRadius: 1,
+    overflow: 'hidden',
+    border: '1px solid #ccc',
+    backgroundColor: '#f4f4f4',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'transform 0.3s ease, border 0.3s ease', // smooth zoom + border effect
+    '&:hover': {
+      transform: 'scale(1.1)', // zooms the entire box with border
+      // border: '2px solid #1976d2', // optional: change border on hover
+    },
+  }}
+>
+  <img
+    src={`${API_BASE_URL}${imgUrl}`}
+    alt={`Product Image ${idx + 1}`}
+    style={{
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+    }}
+  />
+</Box>
+
+      ))}
+    </Box>
+  </Box>
+</Modal>
+
+
 
       <Popover
         open={!!openPopover}
