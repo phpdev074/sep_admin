@@ -572,7 +572,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
               fullWidth
               margin="normal"
               multiline
-              rows={3}
+              rows={4}
               size="small"
               value={formData.description}
               onChange={handleChange}
@@ -797,7 +797,62 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
             whiteSpace: 'nowrap',
           }}
         >
-          {row.title}
+          {/* {row.title} */}
+          <Tooltip title={row.title || 'No title'} arrow placement="top">
+            <Box
+              component="span"
+              sx={{
+                display: 'block',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'help',
+              }}
+            >
+              {row.title?.length > 0 ? (
+                <>
+                  {/* Mobile: show less text */}
+                  <Box
+                    component="span"
+                    sx={{
+                      display: {
+                        xs: 'inline',
+                        sm: 'none',
+                      },
+                    }}
+                  >
+                    {row.title.length > 30
+                      ? `${row.title.slice(0, 30)}...`
+                      : row.title}
+                  </Box>
+                  {/* Small screens and up: show more text */}
+                  <Box
+                    component="span"
+                    sx={{
+                      display: {
+                        xs: 'none',
+                        sm: 'inline',
+                      },
+                    }}
+                  >
+                    {row.title.length > 100
+                      ? `${row.title.slice(0, 100)}...`
+                      : row.title}
+                  </Box>
+                </>
+              ) : (
+                <Box
+                  component="span"
+                  sx={{
+                    fontStyle: 'italic',
+                    color: 'text.secondary',
+                  }}
+                >
+                  No title
+                </Box>
+              )}
+            </Box>
+          </Tooltip>
         </TableCell>
 
         {/* Price Column */}

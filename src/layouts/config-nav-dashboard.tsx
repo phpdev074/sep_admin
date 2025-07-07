@@ -31,7 +31,7 @@ export const navData = [
   {
     title: 'Post',
     path: '/post',
-    icon: icon('ic-post'),
+    icon: icon('post'),
   },
   {
     title: 'Report Post',

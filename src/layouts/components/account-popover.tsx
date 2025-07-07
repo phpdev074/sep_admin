@@ -98,9 +98,9 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
           </Typography>
         </Box>
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+        {/* <Divider sx={{ borderStyle: 'dashed' }} /> */}
 
-        <MenuList
+        {/* <MenuList
           disablePadding
           sx={{
             p: 1,
@@ -131,7 +131,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
               {option.label}
             </MenuItem>
           ))}
-        </MenuList>
+        </MenuList> */}
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 

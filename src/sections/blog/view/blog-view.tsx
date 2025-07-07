@@ -45,6 +45,7 @@ export function SettingView() {
   const [passwordError, setPasswordError] = useState('');
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
 
   useEffect(() => {
@@ -123,6 +124,7 @@ export function SettingView() {
 
   const handleUpdatePassword = async () => {
     setPasswordError('');
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No auth token found');
@@ -147,6 +149,8 @@ export function SettingView() {
       setTimeout(() => setPasswordUpdated(false), 3000); // Reset message after 3s
     } catch (error: any) {
       setPasswordError(error.response?.data?.message || error.message);
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -242,9 +246,9 @@ export function SettingView() {
                 size="small"
                 sx={{ mt: 1 }}
                 onClick={handleUpdatePassword}
-                disabled={!newPassword}
+                disabled={!newPassword || loading}
               >
-                Update Password
+                {loading ? <CircularProgress size={20} color="inherit" /> : 'Update Password'}
               </Button>
             </>
           )}
@@ -256,7 +260,7 @@ export function SettingView() {
           justifyContent="center"
           alignItems="center"
           gap={2}
-          flexWrap="wrap" // Optional: to allow wrapping on small screens
+          flexWrap="wrap" 
           mb={4}
         >
           {Object.entries(editableSections).map(([key, value]) => (

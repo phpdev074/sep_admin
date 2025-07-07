@@ -107,7 +107,20 @@ export function ProductsView({ row, selected, onSelectRow, onModification }: Use
     setFormData({ ...formData, [name]: value });
   };
 
-  if (isLoading) return <Typography>Loading...</Typography>;
+  // if (isLoading) return <Typography><CircularProgress  /></Typography>;
+
+  if (isLoading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh" // takes full viewport height
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
