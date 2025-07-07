@@ -55,7 +55,6 @@ export function SignInView() {
 
     setLoading(true);
     setErrorMsg('');
-
     try {
       const response = await api.post('/admin/loginAdmin', {
         email,
@@ -63,10 +62,8 @@ export function SignInView() {
       });
 
       const { token, admin } = response.data.data;
-
-      // Store token in localStorage or cookie
-      localStorage.setItem('token', token);
       
+      localStorage.setItem('token', token);
 
       router.push('/dashboard');
     } catch (error) {
@@ -137,6 +134,7 @@ export function SignInView() {
         color="inherit"
         variant="contained"
         onClick={handleSignIn}
+        loading={loading}
       >
         Sign in
       </LoadingButton>

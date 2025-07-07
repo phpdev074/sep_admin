@@ -133,7 +133,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
           ))}
         </MenuList> */}
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+        <Divider sx={{ borderStyle: 'solid' }} />
 
         <Box sx={{ p: 1 }}>
           <Button fullWidth color="error" size="medium" variant="text" onClick={handleLogout}>

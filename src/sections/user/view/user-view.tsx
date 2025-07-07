@@ -86,7 +86,6 @@ export function UserView() {
       </Box>
 
       <Card>
-        
 
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
@@ -110,7 +109,8 @@ export function UserView() {
                   { id: '' },
                 ]}
               />
-              <TableBody>
+              <TableBody>           
+            
                 {userData
                   .slice(
                     table.page * table.rowsPerPage,

@@ -151,6 +151,10 @@ export function UserTableRow({ row, selected, onSelectRow, onDelete }: UserTable
                 mb: 1,
                 border: '2px solid #1976d2',
                 boxShadow: 2,
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.2)', // Slightly enlarges the avatar on hover
+                },
               }}
             />
             <Typography variant="h6" fontWeight="medium">
@@ -212,14 +216,6 @@ export function UserTableRow({ row, selected, onSelectRow, onDelete }: UserTable
         </DialogActions>
       </Dialog>
 
-
-
-
-
-
-
-
-
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
         <TableCell padding="checkbox">            {/*eslint-disable-line */}
 
@@ -242,15 +238,12 @@ export function UserTableRow({ row, selected, onSelectRow, onDelete }: UserTable
           {row?.email}
         </TableCell>
 
-
-
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
       </TableRow>
-
 
       <Popover
         open={!!openPopover}

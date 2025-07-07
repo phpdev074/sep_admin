@@ -149,22 +149,24 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
     }
   };
 
-  const handleDelete = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete ?');
-    if (confirmed) {
-      try {
-        const response = await api.delete(`/api/product?id=${id}`);
-        if (response.status === 200) {
-          onModification(); // <-- Refresh list after deletion
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const confirmed = window.confirm('Are you sure you want to delete ?');
+      if (confirmed) {
+        try {
+          const response = await api.delete(`/api/product?id=${id}`);
+          if (response.status === 200) {
+            onModification(); // <-- Refresh list after deletion
+          }
+        } catch (error) {
+          console.error('Delete failed', error);
+          alert('An error occurred while deleting the product.');
         }
-      } catch (error) {
-        console.error('Delete failed', error);
-        alert('An error occurred while deleting the product.');
       }
-    }
-    setOpenPopover(null);
-  }, [onModification]);
-
+      setOpenPopover(null);
+    },
+    [onModification]
+  );
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0 && selectedImageIndex !== null) {
@@ -192,7 +194,6 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
 
           setImageUrl(uploadedUrl);
         }
-
       } catch (error) {
         console.error('Image upload failed:', error);
         alert('Failed to upload image. Please try again.');
@@ -209,7 +210,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
         const files = e.target.files;
         // If you want to upload multiple files at once, create FormData for all files
         const formDataToUpload = new FormData();
-        Array.from(files).forEach(file => {
+        Array.from(files).forEach((file) => {
           formDataToUpload.append('files', file);
         });
 
@@ -253,16 +254,12 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
     }
   };
 
-
-
-
   const handleChangeWrapper = (target: { name: string; value: string }) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [target.name]: target.value,
     }));
   };
-
 
   return (
     <>
@@ -353,10 +350,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
                       borderRadius: 2,
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      border:
-                        selectedImageIndex === index
-                          ? '2px solid blue'
-                          : '1px solid #ccc',
+                      border: selectedImageIndex === index ? '2px solid blue' : '1px solid #ccc',
                       flexShrink: 0,
                     }}
                   >
@@ -416,7 +410,6 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
                 </Tooltip>
               ))}
 
-
               {/* Add New Image Icon */}
               <Tooltip title="Add new image">
                 <Box
@@ -448,7 +441,6 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
                 </Box>
               </Tooltip>
             </Box>
-
 
             {/* Styled File Upload */}
             <Box display="flex" justifyContent="center" mb={3}>
@@ -743,7 +735,9 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
             >
               <Avatar
                 alt="Product Image"
-                src={row.image && row.image.length > 0 ? `${API_BASE_URL}${row.image[0]}` : undefined}
+                src={
+                  row.image && row.image.length > 0 ? `${API_BASE_URL}${row.image[0]}` : undefined
+                }
                 sx={{
                   width: {
                     xs: 40,
@@ -779,7 +773,6 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
             </Box>
           </Box>
         </TableCell>
-
 
         {/* Title Column - Hidden on mobile (shown in image cell) */}
         <TableCell
@@ -821,9 +814,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
                       },
                     }}
                   >
-                    {row.title.length > 30
-                      ? `${row.title.slice(0, 30)}...`
-                      : row.title}
+                    {row.title.length > 30 ? `${row.title.slice(0, 30)}...` : row.title}
                   </Box>
                   {/* Small screens and up: show more text */}
                   <Box
@@ -835,9 +826,7 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
                       },
                     }}
                   >
-                    {row.title.length > 100
-                      ? `${row.title.slice(0, 100)}...`
-                      : row.title}
+                    {row.title.length > 100 ? `${row.title.slice(0, 100)}...` : row.title}
                   </Box>
                 </>
               ) : (
@@ -866,7 +855,8 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
             },
           }}
         >
-          ${(() => {
+          $
+          {(() => {
             const price = row.price;
             if (typeof price === 'number') {
               return `${price}`;
@@ -1018,43 +1008,42 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
               mt: 2,
             }}
           >
-            {(Array.isArray(row.image) ? row.image : [row.image]).map((imgUrl: string, idx: number) => (
-              <Box
-                key={idx}
-                sx={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                  border: '1px solid #ccc',
-                  backgroundColor: '#f4f4f4',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'transform 0.3s ease, border 0.3s ease', // smooth zoom + border effect
-                  '&:hover': {
-                    transform: 'scale(1.1)', // zooms the entire box with border
-                    // border: '2px solid #1976d2', // optional: change border on hover
-                  },
-                }}
-              >
-                <img
-                  src={`${API_BASE_URL}${imgUrl}`}
-                  alt={`Product Image ${idx + 1}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
+            {(Array.isArray(row.image) ? row.image : [row.image]).map(
+              (imgUrl: string, idx: number) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    border: '1px solid #ccc',
+                    backgroundColor: '#f4f4f4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'transform 0.3s ease, border 0.3s ease', // smooth zoom + border effect
+                    '&:hover': {
+                      transform: 'scale(1.1)', // zooms the entire box with border
+                      // border: '2px solid #1976d2', // optional: change border on hover
+                    },
                   }}
-                />
-              </Box>
-
-            ))}
+                >
+                  <img
+                    src={`${API_BASE_URL}${imgUrl}`}
+                    alt={`Product Image ${idx + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </Box>
+              )
+            )}
           </Box>
         </Box>
       </Modal>
-
-
 
       <Popover
         open={!!openPopover}
@@ -1100,4 +1089,3 @@ export function ProductTableRow({ row, selected, onSelectRow, onModification }: 
 function setImageUploadLoading(arg0: (prev: any) => any[]) {
   throw new Error('Function not implemented.');
 }
-

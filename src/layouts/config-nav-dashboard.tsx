@@ -26,7 +26,7 @@ export const navData = [
   {
     title: 'Deleted Users',
     path: '/deletedUser',
-    icon: icon('ic-block'),
+    icon: icon('delete'),
   },
   {
     title: 'Post',

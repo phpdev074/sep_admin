@@ -20,7 +20,7 @@ import { Icon } from '@iconify/react';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { format } from 'date-fns';
-import { api,API_BASE_URL } from '../../api/url'
+import { api, API_BASE_URL } from '../../api/url'
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ interface File {
   _id: string;
 }
 
- interface Post {
+interface Post {
   _id: string;
   // userId: string;
   // categoryId: string;
@@ -62,7 +62,7 @@ interface File {
   categoryId: {
     name: string;
   };
-  
+
 }
 
 export type UserProps = {
@@ -74,7 +74,7 @@ export type UserProps = {
   // company: string;
   // avatarUrl: string;
   // isVerified: boolean; 
-  fileType:string;
+  fileType: string;
   content: string;
   createdAt: string;
   userId: {
@@ -92,7 +92,7 @@ type UserTableRowProps = {
   onDeletePost: (id: string) => void;
 };
 
-export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserTableRowProps) {
+export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [editContent, setEditContent] = useState(row.content);
@@ -102,31 +102,31 @@ export function UserTableRow({ row, selected, onSelectRow,onDeletePost  }: UserT
 
   const handleCloseEditModal = () => {
     handleClosePopover();
-    setOpenEditModal(false) 
-  } ;
+    setOpenEditModal(false)
+  };
   const handleOpenEditModal = () => setOpenEditModal(true);
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [newImageFile, setNewImageFile] = useState(null);
 
-  const handleImageChange = (e:any) => {
-    const file = e.target.files[0]; 
+  const handleImageChange = (e: any) => {
+    const file = e.target.files[0];
     if (file) {
       setNewImageFile(file);
       const previewUrl = URL.createObjectURL(file);
       setPreviewImage(previewUrl);
     }
-  };  
+  };
 
-const handleOpenImageModal = (src:any) => {
-  setSelectedImage(src);
-  setOpenImageModal(true);
-};
+  const handleOpenImageModal = (src: any) => {
+    setSelectedImage(src);
+    setOpenImageModal(true);
+  };
 
-const handleCloseImageModal = () => {
-  setOpenImageModal(false);
-  setSelectedImage(null);
-};
+  const handleCloseImageModal = () => {
+    setOpenImageModal(false);
+    setSelectedImage(null);
+  };
 
 
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditContent(e.target.value);
@@ -143,10 +143,10 @@ const handleCloseImageModal = () => {
   // };
 
   const handleSubmitEdit = () => {
-    
+
     console.log('Content:', editContent);
     console.log('Selected Image:', selectedImage);
-    handleCloseEditModal(); 
+    handleCloseEditModal();
   };
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -167,17 +167,17 @@ const handleCloseImageModal = () => {
         onDeletePost(id);
       } catch (error) {
         console.error("Error deleting post:", error);
-        
+
       }
     }
   }, [onDeletePost]);
-  
+
 
 
   return (
     <>
 
-{/* <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
+      {/* <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
   <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
     📝 Edit Post
   </DialogTitle>
@@ -326,200 +326,194 @@ const handleCloseImageModal = () => {
   </DialogActions>
 </Dialog> */}
 
-<Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
-  <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
-    👁️ View Post
-  </DialogTitle>
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
+          👁️ View Post
+        </DialogTitle>
 
-  <DialogContent
-    dividers
-    sx={{
-      overflowY: 'auto',
-      maxHeight: '600px',
-      '&::-webkit-scrollbar': { display: 'none' },
-      scrollbarWidth: 'none',
-      px: 3,
-      py: 4,
-    }}
-  >
-    {/* Display Image */}
-    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-      {row?.files?.[0]?.type === 'video' ? (
-        <Box
-          component="video"
-          src={`${API_BASE_URL}${row.files?.[0]?.file}`}
-          controls
-          preload="metadata"
-          onError={(e) => {
-            const target = e.target as HTMLVideoElement;
-            target.style.display = 'none';
-          }}
+        <DialogContent
+          dividers
           sx={{
-            width: 160,
-            height: 160,
-            borderRadius: 2,
-            boxShadow: 2,
-            border: '2px solid #1976d2',
-            cursor: 'pointer',
-            transition: 'transform 0.4s ease-in-out',
-            '&:hover': {
-              transform: 'scale(1.3)',
-              zIndex: 1,
-            },
-            '&::-webkit-media-controls': {
-              display: 'none',
-            },
+            overflowY: 'auto',
+            maxHeight: '600px',
+            '&::-webkit-scrollbar': { display: 'none' },
+            scrollbarWidth: 'none',
+            px: 3,
+            py: 4,
           }}
-        />
-      ) : (
-        <Avatar
-          src={`${API_BASE_URL}${row?.files?.[0]?.file}`}
-          alt="Post Image"
-          variant="rounded"
-          sx={{
-            width: 160,
-            height: 160,
-            boxShadow: 2,
-            border: '2px solid #1976d2',
-            cursor: 'pointer',
-            transition: 'transform 0.4s ease-in-out',
-            '&:hover': {
-              transform: 'scale(1.3)',
-              zIndex: 1,
-            },
-          }}
-        />
-      )}
-    </Box>
-
-    {/* Content Display */}
-    <Typography variant="subtitle1" fontWeight="bold" mb={1}>
-      Content:
-    </Typography>
-    <Typography variant="body1" mb={3}>
-      {row.content || 'N/A'}
-    </Typography>
-
-    {/* Info Grid */}
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 2fr',
-        gap: 2,
-        backgroundColor: '#f5f5f5',
-        borderRadius: 2,
-        p: 3,
-        boxShadow: 1,
-      }}
-    >
-      {[
-        { icon: 'mdi:tag-outline', label: 'Category', value: row?.categoryId?.name || row?.categoryId },
-        { icon: 'mdi:earth', label: 'Country', value: row?.country && row?.country.trim() !== '' ? row?.country : 'N/A' },
-        { icon: 'mdi:account', label: 'Name', value: row?.userId?.name || 'N/A' },
-        row.startTime && {
-          icon: 'mdi:clock-start',
-          label: 'Start Time',
-          value: format(new Date(row?.startTime), 'PPpp'),
-        },
-        row.endTime && {
-          icon: 'mdi:clock-end',
-          label: 'End Time',
-          value: format(new Date(row?.endTime), 'PPpp'),
-        },
-        row.duration && {
-          icon: 'mdi:timer-outline',
-          label: 'Duration',
-          value: `${row?.duration} seconds`,
-        },
-        {
-          icon: 'mdi:eye-outline',
-          label: 'Watched Users',
-          value: row?.watchedUsers?.length ?? 0,
-        },
-        {
-          icon: 'mdi:thumb-up-outline',
-          label: 'Votes',
-          value: row?.votes?.length ?? 0,
-        },
-        {
-          icon: 'mdi:calendar-plus',
-          label: 'Created At',
-          value: format(new Date(row?.createdAt), 'PP'),
-        },
-      ]
-        .filter((field): field is { icon: string; label: string; value: any } => Boolean(field))
-        .map((field, idx) => (
-          <Box key={idx} display="flex" alignItems="center" gap={1}>
-            <Iconify icon={field?.icon} width={20} color="text.secondary" />
-            <Typography variant="subtitle2" color="text.secondary">
-              {field?.label}:
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ gridColumn: 'span 2' }}>
-              {field?.value}
-            </Typography>
+        >
+          {/* Display Image */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            {row?.files?.[0]?.type === 'video' ? (
+              <Box
+                component="video"
+                src={`${API_BASE_URL}${row.files?.[0]?.file}`}
+                controls
+                preload="metadata"
+                onError={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = 'none';
+                }}
+                sx={{
+                  width: 160,
+                  height: 160,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                  border: '2px solid #1976d2',
+                  cursor: 'pointer',
+                  transition: 'transform 0.4s ease-in-out',
+                  '&:hover': {
+                    transform: 'scale(1.3)',
+                    zIndex: 1,
+                  },
+                  '&::-webkit-media-controls': {
+                    display: 'none',
+                  },
+                }}
+              />
+            ) : (
+              <Avatar
+                src={`${API_BASE_URL}${row?.files?.[0]?.file}`}
+                alt="Post Image"
+                variant="rounded"
+                sx={{
+                  width: 160,
+                  height: 160,
+                  boxShadow: 2,
+                  border: '2px solid #1976d2',
+                  cursor: 'pointer',
+                  transition: 'transform 0.4s ease-in-out',
+                  '&:hover': {
+                    transform: 'scale(1.3)',
+                    zIndex: 1,
+                  },
+                }}
+              />
+            )}
           </Box>
-        ))}
-    </Box>
-  </DialogContent>
 
-  <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-    <Button onClick={handleCloseEditModal} color="primary" variant="outlined">
-      Close
-    </Button>
-  </DialogActions>
-</Dialog>
+          {/* Content Display */}
+          <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+            Content:
+          </Typography>
+          <Typography variant="body1" mb={3}>
+            {row.content || 'N/A'}
+          </Typography>
 
+          {/* Info Grid */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 2fr',
+              gap: 2,
+              backgroundColor: '#f5f5f5',
+              borderRadius: 2,
+              p: 3,
+              boxShadow: 1,
+            }}
+          >
+            {[
+              { icon: 'mdi:tag-outline', label: 'Category', value: row?.categoryId?.name || row?.categoryId },
+              { icon: 'mdi:earth', label: 'Country', value: row?.country && row?.country.trim() !== '' ? row?.country : 'N/A' },
+              { icon: 'mdi:account', label: 'Name', value: row?.userId?.name || 'N/A' },
+              row.startTime && {
+                icon: 'mdi:clock-start',
+                label: 'Start Time',
+                value: format(new Date(row?.startTime), 'PPpp'),
+              },
+              row.endTime && {
+                icon: 'mdi:clock-end',
+                label: 'End Time',
+                value: format(new Date(row?.endTime), 'PPpp'),
+              },
+              row.duration && {
+                icon: 'mdi:timer-outline',
+                label: 'Duration',
+                value: `${row?.duration} seconds`,
+              },
+              {
+                icon: 'mdi:eye-outline',
+                label: 'Watched Users',
+                value: row?.watchedUsers?.length ?? 0,
+              },
+              {
+                icon: 'mdi:thumb-up-outline',
+                label: 'Votes',
+                value: row?.votes?.length ?? 0,
+              },
+              {
+                icon: 'mdi:calendar-plus',
+                label: 'Created At',
+                value: format(new Date(row?.createdAt), 'PP'),
+              },
+            ]
+              .filter((field): field is { icon: string; label: string; value: any } => Boolean(field))
+              .map((field, idx) => (
+                <Box key={idx} display="flex" alignItems="center" gap={1}>
+                  <Iconify icon={field?.icon} width={20} color="text.secondary" />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    {field?.label}:
+                  </Typography>
+                  <Typography variant="body2" color="text.primary" sx={{ gridColumn: 'span 2' }}>
+                    {field?.value}
+                  </Typography>
+                </Box>
+              ))}
+          </Box>
+        </DialogContent>
 
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button onClick={handleCloseEditModal} color="primary" variant="outlined">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
+      <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
+        <TableCell padding="checkbox">{/* eslint-disable-line */}</TableCell>
 
+        <TableCell component="th" scope="row">
+          <Box gap={2} display="flex" alignItems="center">
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                overflow: 'visible',
+                cursor: 'pointer',
+                transition: 'transform 0.4s ease-in-out',
+                '&:hover': {
+                  transform: 'scale(1.3)',
+                  zIndex: 1,
+                },
+              }}
+              onClick={() => handleOpenImageModal(`${API_BASE_URL}${row.files?.[0]?.file}`)}
+            >
+              <Avatar
+                src={`${API_BASE_URL}${row?.files?.[0]?.file}`}
+                sx={{
+                  width: '120%',
+                  height: '120%',
+                }}
+              />
+            </Box>
+          </Box>
+        </TableCell>
 
+        <TableCell>{row?.fileType || 'N/A'}</TableCell>
 
+        <TableCell>{row?.content.slice(0, 30) || 'N/A'}</TableCell>
 
-<TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-  <TableCell padding="checkbox">{/* eslint-disable-line */}</TableCell>
+        <TableCell>{row?.userId?.name || 'N/A'}</TableCell>
 
-  <TableCell component="th" scope="row">
-    <Box gap={2} display="flex" alignItems="center">
-    <Box
-      sx={{
-        width: 40,
-        height: 40,
-        borderRadius: '50%',
-        overflow: 'visible', 
-        cursor: 'pointer',
-        transition: 'transform 0.4s ease-in-out',
-        '&:hover': {
-          transform: 'scale(1.3)',
-          zIndex: 1,
-        },
-      }}
-      onClick={() => handleOpenImageModal(`${API_BASE_URL}${row.files?.[0]?.file}`)}
-    >
-         <Avatar
-        src={`${API_BASE_URL}${row?.files?.[0]?.file}`}
-        sx={{
-          width: '120%',
-          height: '120%',
-        }}
-      />
-      </Box>
-    </Box>
-  </TableCell>
+        <TableCell>{format(new Date(row?.createdAt), 'PP')}</TableCell>
 
-  <TableCell>{row?.fileType || 'N/A'}</TableCell>
-
-  <TableCell>{row?.content.slice(0, 30) || 'N/A'}</TableCell>
-
-  <TableCell>{row?.userId?.name || 'N/A'}</TableCell>
-
-  <TableCell>{format(new Date(row?.createdAt), 'PP')}</TableCell>
-
-  <TableCell align="right">
-    <IconButton onClick={handleOpenPopover}>
-      <Iconify icon="eva:more-vertical-fill" />
-    </IconButton>
-  </TableCell>
-</TableRow>
+        <TableCell align="right">
+          <IconButton onClick={handleOpenPopover}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+        </TableCell>
+      </TableRow>
 
 
       <Popover
@@ -546,7 +540,7 @@ const handleCloseImageModal = () => {
           }}
         >
           <MenuItem onClick={handleOpenEditModal}>
-          
+
             View Details
           </MenuItem>
 

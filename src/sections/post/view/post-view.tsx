@@ -142,10 +142,6 @@ export function PostView() {
               />
               <TableBody>
                 {userData
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
                   .map((row:any) => (
                     <UserTableRow
                       key={row?._id}
