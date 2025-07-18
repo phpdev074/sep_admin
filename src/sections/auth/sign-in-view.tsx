@@ -22,7 +22,7 @@ export function SignInView() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [email, setEmail] = useState('admin@gmail.com');
   const [password, setPassword] = useState('123456');
   const [loading, setLoading] = useState(false);
@@ -63,24 +63,26 @@ export function SignInView() {
 
       const { token, admin } = response.data.data;
       
-      localStorage.setItem('token', token);
+      // localStorage.setItem('token', token);
+      localStorage.setItem('_id', admin._id)
 
-      router.push('/dashboard');
+
+      router.push('/otp');
     } catch (error) {
-  console.error('Login error:', error);
+      console.error('Login error:', error);
 
-  const response = error?.response;
-  const message = response?.data?.message || 'Login failed. Please try again.';
-
-  if (message === 'Email not found') {
-    setEmailError(message);
-  } else if (message === 'Invalid password') {
-    setPasswordError(message);
-  } else {
-    setGlobalError(message);
-  }
-}
- finally {
+      const response = error?.response;
+      const message = response?.data?.message || 'Login failed. Please try again.';
+      
+      if (message === 'Email not found') {
+        setEmailError(message);
+      } else if (message === 'Invalid password') {
+        setPasswordError(message);
+      } else {
+        setGlobalError(message);
+      }
+    }
+    finally {
       setLoading(false);
     }
   }, [email, password, router]);

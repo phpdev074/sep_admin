@@ -10,6 +10,7 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 import { BlockView } from 'src/sections/blockUser/view/blockedUser';
 import { ReportPostView } from 'src/sections/reportPost/view/post-view';
 import PrivateRoute from 'src/PrivateRoute';
+import { OtpView } from 'src/sections/otp/otp-view';
 
 // ----------------------------------------------------------------------
 
@@ -73,6 +74,10 @@ export function Router() {
         { path: 'products', element: <ProductsPage /> },
         { path: 'setting', element: <BlogPage /> },
       ],
+    },
+    {
+      path: 'otp',
+      element: <OtpView />,
     },
     {
       path: '404',

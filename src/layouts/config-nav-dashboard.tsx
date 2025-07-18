@@ -49,8 +49,8 @@ export const navData = [
     icon: icon('ic-setting'),
   },
   // {
-  //   title: 'Sign in',
-  //   path: '/sign-in',
+  //   title: 'Otp',
+  //   path: '/otp',
   //   icon: icon('ic-lock'),
   // },
   
