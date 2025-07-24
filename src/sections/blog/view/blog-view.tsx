@@ -78,10 +78,10 @@ export function SettingView() {
         setAdminEmail(data.email || '');
         setOriginalAdminName(data.name || '');
         setOriginalAdminEmail(data.email || '');
-        setCommissionCharge(data?.commission ?? 30);
-        setTransactionCharge(data?.transactionCharge ?? 5);
-        setInitialCommissionCharge(data?.commission ?? 30);
-        setInitialTransactionCharge(data?.transactionCharge ?? 5);
+        setCommissionCharge(data?.commission );
+        setTransactionCharge(data?.transactionCharge );
+        setInitialCommissionCharge(data?.commission );
+        setInitialTransactionCharge(data?.transactionCharge );
       } catch (error: any) {
         setErrorAdmin(
           error.response?.data?.message || error.message || 'Failed to load admin data'
@@ -104,7 +104,7 @@ export function SettingView() {
           const token = localStorage.getItem('token');
           if (!token) throw new Error('No auth token found');
 
-          const response = await api.get('/admin/getCharges', {
+          const response = await api.get('/admin/getAdmin', {
             headers: { Authorization: `Bearer ${token}` },
           });
 
