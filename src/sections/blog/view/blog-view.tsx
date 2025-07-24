@@ -109,10 +109,10 @@ export function SettingView() {
           });
 
           const data = response.data?.data;
-          setCommissionCharge(data?.commission ?? 30);
-          setTransactionCharge(data?.transactionCharge ?? 5);
-          setInitialCommissionCharge(data?.commission ?? 30);
-          setInitialTransactionCharge(data?.transactionCharge ?? 5);
+          setCommissionCharge(data?.commission);
+          setTransactionCharge(data?.transactionCharge);
+          setInitialCommissionCharge(data?.commission);
+          setInitialTransactionCharge(data?.transactionCharge);
         } catch (error: any) {
           setErrorCharges(
             error.response?.data?.message || error.message || 'Failed to load charges'
@@ -196,7 +196,7 @@ export function SettingView() {
             type="number"
             inputProps={{ min: 0, max: 100, step: 0.1 }}
             value={commissionCharge}
-            onChange={(e) => setCommissionCharge(parseFloat(e.target.value) || 0)}
+            onChange={(e) => setCommissionCharge(parseFloat(e.target.value))}
             fullWidth
           />
           <Typography variant="body2" color="text.secondary">
@@ -208,7 +208,7 @@ export function SettingView() {
             type="number"
             inputProps={{ min: 0, max: 100, step: 0.1 }}
             value={transactionCharge}
-            onChange={(e) => setTransactionCharge(parseFloat(e.target.value) || 0)}
+            onChange={(e) => setTransactionCharge(parseFloat(e.target.value))}
             fullWidth
           />
           <Typography variant="body2" color="text.secondary">
@@ -293,8 +293,8 @@ export function SettingView() {
                       } catch (error: any) {
                         alert(
                           error.response?.data?.message ||
-                            error.message ||
-                            'Failed to update admin info'
+                          error.message ||
+                          'Failed to update admin info'
                         );
                       } finally {
                         setSavingAdmin(false);
