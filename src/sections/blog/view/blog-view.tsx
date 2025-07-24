@@ -31,10 +31,10 @@ const initialContent = {
 type Section = keyof typeof initialContent;
 
 export function SettingView() {
-  // New: Track current tab ('settings' | 'charges')
+  // Track current tab ('settings' | 'charges')
   const [tab, setTab] = useState<'settings' | 'charges'>('settings');
 
-  // Settings states (your existing ones)
+  // Settings states
   const [openDialog, setOpenDialog] = useState(false);
   const [currentSection, setCurrentSection] = useState<Section | undefined>(undefined);
   const [sectionContent, setSectionContent] = useState<string>('');
@@ -51,14 +51,16 @@ export function SettingView() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // New states for Charges tab
+  // Charges states
   const [commissionCharge, setCommissionCharge] = useState<number>(30);
   const [transactionCharge, setTransactionCharge] = useState<number>(5);
+  const [initialCommissionCharge, setInitialCommissionCharge] = useState<number>(30);
+  const [initialTransactionCharge, setInitialTransactionCharge] = useState<number>(5);
   const [loadingCharges, setLoadingCharges] = useState(false);
   const [savingCharges, setSavingCharges] = useState(false);
   const [errorCharges, setErrorCharges] = useState('');
 
-  // Fetch admin info as before
+  // Fetch admin info on mount
   useEffect(() => {
     const fetchAdmin = async () => {
       setLoadingAdmin(true);
@@ -76,8 +78,14 @@ export function SettingView() {
         setAdminEmail(data.email || '');
         setOriginalAdminName(data.name || '');
         setOriginalAdminEmail(data.email || '');
+        setCommissionCharge(data?.commission ?? 30);
+        setTransactionCharge(data?.transactionCharge ?? 5);
+        setInitialCommissionCharge(data?.commission ?? 30);
+        setInitialTransactionCharge(data?.transactionCharge ?? 5);
       } catch (error: any) {
-        setErrorAdmin(error.response?.data?.message || error.message || 'Failed to load admin data');
+        setErrorAdmin(
+          error.response?.data?.message || error.message || 'Failed to load admin data'
+        );
       } finally {
         setLoadingAdmin(false);
       }
@@ -86,7 +94,7 @@ export function SettingView() {
     fetchAdmin();
   }, []);
 
-  // Fetch charges info from API when tab is 'charges'
+  // Fetch charges info when tab switches to "charges"
   useEffect(() => {
     if (tab === 'charges') {
       const fetchCharges = async () => {
@@ -103,8 +111,12 @@ export function SettingView() {
           const data = response.data?.data;
           setCommissionCharge(data?.commission ?? 30);
           setTransactionCharge(data?.transactionCharge ?? 5);
+          setInitialCommissionCharge(data?.commission ?? 30);
+          setInitialTransactionCharge(data?.transactionCharge ?? 5);
         } catch (error: any) {
-          setErrorCharges(error.response?.data?.message || error.message || 'Failed to load charges');
+          setErrorCharges(
+            error.response?.data?.message || error.message || 'Failed to load charges'
+          );
         } finally {
           setLoadingCharges(false);
         }
@@ -118,9 +130,7 @@ export function SettingView() {
     setTab(newValue);
   };
 
-  // Your existing handlers for Settings...
-
-  // New: handle saving charges
+  // Save Charges handler
   const handleSaveCharges = async () => {
     setSavingCharges(true);
     setErrorCharges('');
@@ -129,7 +139,7 @@ export function SettingView() {
       if (!token) throw new Error('No auth token found');
 
       await api.put(
-        '/admin/updateCharges',
+        '/admin/editAdmin',
         {
           commission: commissionCharge,
           transactionCharge: transactionCharge,
@@ -138,7 +148,11 @@ export function SettingView() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert('Charges updated successfully!');
+
+      // Update initial values after save to disable button
+      setInitialCommissionCharge(commissionCharge);
+      setInitialTransactionCharge(transactionCharge);
+      // Optionally notify success here
     } catch (error: any) {
       setErrorCharges(error.response?.data?.message || error.message || 'Failed to update charges');
     } finally {
@@ -146,7 +160,11 @@ export function SettingView() {
     }
   };
 
-  // Render charges tab content
+  // Determine if charges values have changed
+  const chargesChanged =
+    commissionCharge !== initialCommissionCharge || transactionCharge !== initialTransactionCharge;
+
+  // Render Charges Tab content
   const renderChargesTab = () => (
     <Box
       sx={{
@@ -158,10 +176,10 @@ export function SettingView() {
         display: 'flex',
         flexDirection: 'column',
         gap: 3,
-        marginLeft: '371px'
+        marginLeft: '371px',
       }}
     >
-      <Typography variant="h6" mb={1} >
+      <Typography variant="h6" mb={1}>
         Charges Settings
       </Typography>
 
@@ -182,7 +200,7 @@ export function SettingView() {
             fullWidth
           />
           <Typography variant="body2" color="text.secondary">
-            Commission charge applied on each transaction (e.g., 30%)
+            Commission charge applied on each transaction
           </Typography>
 
           <TextField
@@ -194,14 +212,14 @@ export function SettingView() {
             fullWidth
           />
           <Typography variant="body2" color="text.secondary">
-            Transaction charge (e.g., 5%) applied on each withdrawal
+            Transaction charge applied on each withdrawal
           </Typography>
 
           <Button
             variant="contained"
-            // onClick={handleSaveCharges}
-            disabled={savingCharges}
-            sx={{ alignSelf: 'flex-end' }}
+            onClick={handleSaveCharges}
+            disabled={savingCharges || !chargesChanged}
+            sx={{ alignSelf: 'flex-end', width: '350px' }}
           >
             {savingCharges ? 'Saving...' : 'Save Charges'}
           </Button>
@@ -244,8 +262,18 @@ export function SettingView() {
               <Typography color="error">{errorAdmin}</Typography>
             ) : (
               <>
-                <TextField label="Name" value={adminName} fullWidth onChange={(e) => setAdminName(e.target.value)} />
-                <TextField label="Email" value={adminEmail} fullWidth onChange={(e) => setAdminEmail(e.target.value)} />
+                <TextField
+                  label="Name"
+                  value={adminName}
+                  fullWidth
+                  onChange={(e) => setAdminName(e.target.value)}
+                />
+                <TextField
+                  label="Email"
+                  value={adminEmail}
+                  fullWidth
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                />
                 {(adminName !== originalAdminName || adminEmail !== originalAdminEmail) && (
                   <Button
                     variant="contained"
@@ -261,9 +289,13 @@ export function SettingView() {
                         );
                         setOriginalAdminName(adminName);
                         setOriginalAdminEmail(adminEmail);
-                        alert('Admin info updated successfully!');
+                        // alert('Admin info updated successfully!');
                       } catch (error: any) {
-                        alert(error.response?.data?.message || error.message || 'Failed to update admin info');
+                        alert(
+                          error.response?.data?.message ||
+                            error.message ||
+                            'Failed to update admin info'
+                        );
                       } finally {
                         setSavingAdmin(false);
                       }
@@ -293,7 +325,11 @@ export function SettingView() {
                         size="small"
                         sx={{ minWidth: 'auto', ml: 1 }}
                       >
-                        {showPassword ? <Iconify icon="eva:eye-off-fill" width={20} /> : <Iconify icon="eva:eye-fill" width={20} />}
+                        {showPassword ? (
+                          <Iconify icon="eva:eye-off-fill" width={20} />
+                        ) : (
+                          <Iconify icon="eva:eye-fill" width={20} />
+                        )}
                       </Button>
                     ),
                   }}
@@ -324,6 +360,7 @@ export function SettingView() {
 
                       if (!newPassword || newPassword.length < 6) {
                         setPasswordError('Password must be at least 6 characters long.');
+                        setLoading(false);
                         return;
                       }
 
@@ -387,7 +424,13 @@ export function SettingView() {
             ))}
           </Box>
 
-          <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="lg" fullWidth sx={{ minHeight: '450px' }}>
+          <Dialog
+            open={openDialog}
+            onClose={() => setOpenDialog(false)}
+            maxWidth="lg"
+            fullWidth
+            sx={{ minHeight: '450px' }}
+          >
             <DialogTitle>Edit {currentSection && editableSections[currentSection]}</DialogTitle>
             <DialogContent>
               <TextField
