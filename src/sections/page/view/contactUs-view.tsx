@@ -15,6 +15,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { api } from 'src/api/url';
+import { CircularProgress } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -48,6 +49,7 @@ function TabPanel(props: TabPanelProps) {
 export function ContactUsViewPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [pages, setPages] = useState<PageData[]>([
     {
@@ -65,6 +67,7 @@ export function ContactUsViewPage() {
   ]);
 
   const fetchUsers = async () => {
+    setIsLoading(true);
     try {
       const { data } = await api.get(`/api/pages`);
       // console.log(data.data, '===>data');
@@ -76,7 +79,7 @@ export function ContactUsViewPage() {
       }
       throw err;
     } finally {
-      // setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -152,6 +155,17 @@ export function ContactUsViewPage() {
   };
 
   const currentPage = pages[activeTab];
+
+  if (isLoading) return (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="100vh"
+        > 
+          <CircularProgress /> 
+        </Box>
+      );
 
   return (
     <DashboardContent>
