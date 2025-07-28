@@ -50,6 +50,7 @@ export function ContactUsViewPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [pages, setPages] = useState<PageData[]>([
     {
@@ -128,13 +129,19 @@ export function ContactUsViewPage() {
   };
 
   const handleSave = async (item: any) => {
-    // console.log(item.type,'===>>item.type')
-    const response = await api.put('/api/pages/updatePageInfo', {
-      type: item.type,
-      description: pages[activeTab].description,
-      title:pages[activeTab].title
-    });
-    setIsEditing(false);
+    setIsSaving(true)
+    try {
+      await api.put('/api/pages/updatePageInfo', {
+        type: item.type,
+        description: pages[activeTab].description,
+        title: pages[activeTab].title,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      // handle error if needed
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -205,8 +212,9 @@ export function ContactUsViewPage() {
                 onSave={handleSave}
                 onCancel={handleCancel}
                 modules={modules}
-                formats={formats}
-              />
+                formats={formats} 
+                isSaving={isSaving}      
+                />
             ) : (
               <ViewPageContent page={currentPage} />
             )}
@@ -226,6 +234,7 @@ interface EditPageContentProps {
   onCancel: () => void;
   modules: any;
   formats: string[];
+  isSaving: boolean;
 }
 
 function EditPageContent({
@@ -236,6 +245,7 @@ function EditPageContent({
   onCancel,
   modules,
   formats,
+  isSaving,
 }: EditPageContentProps) {
   return (
     <>
@@ -266,8 +276,8 @@ function EditPageContent({
       </Grid>
 
       <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-        <Button variant="contained" onClick={() => onSave(page)}>
-          Save Changes
+        <Button variant="contained" onClick={() => onSave(page)} disabled={isSaving} startIcon={isSaving ? <CircularProgress size={20} /> : null}>
+          {isSaving ? 'Saving...' : 'Save Changes'}
         </Button>
         <Button variant="outlined" onClick={onCancel}>
           Cancel
