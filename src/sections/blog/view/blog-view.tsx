@@ -19,9 +19,9 @@ import { api } from 'src/api/url';
 import { Iconify } from 'src/components/iconify';
 
 const editableSections = {
-  faq: 'FAQ',
-  terms: 'Terms and Conditions',
-  privacy: 'Privacy Policy',
+  // faq: 'FAQ',
+  // terms: 'Terms and Conditions',
+  // privacy: 'Privacy Policy',
 } as const;
 const initialContent = {
   faq: 'Here are some frequently asked questions...',
@@ -387,7 +387,7 @@ export function SettingView() {
             )}
           </Box>
 
-          <Box
+          {/* <Box
             display="flex"
             flexDirection="row"
             justifyContent="center"
@@ -458,7 +458,7 @@ export function SettingView() {
                 Save
               </Button>
             </DialogActions>
-          </Dialog>
+          </Dialog> */}
         </Box>
       ) : (
         renderChargesTab()
