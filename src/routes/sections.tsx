@@ -11,6 +11,7 @@ import { BlockView } from 'src/sections/blockUser/view/blockedUser';
 import { ReportPostView } from 'src/sections/reportPost/view/post-view';
 import PrivateRoute from 'src/PrivateRoute';
 import { OtpView } from 'src/sections/otp/otp-view';
+import { ContactUsViewPage } from 'src/sections/page/view';
 
 // ----------------------------------------------------------------------
 
@@ -73,6 +74,7 @@ export function Router() {
         {path:'reportpost',element:<ReportPostView />},
         { path: 'products', element: <ProductsPage /> },
         { path: 'setting', element: <BlogPage /> },
+        { path: 'page', element:<ContactUsViewPage /> }
       ],
     },
     {

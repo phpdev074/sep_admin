@@ -44,6 +44,11 @@ export const navData = [
     icon: icon('ic-cart'),
   },
   {
+    title: 'Pages',
+    path: '/page',
+    icon: icon('page'),
+  },
+  {
     title: 'Settings',
     path: '/setting',
     icon: icon('ic-setting'),
