@@ -59,6 +59,11 @@ export function SettingView() {
   const [loadingCharges, setLoadingCharges] = useState(false);
   const [savingCharges, setSavingCharges] = useState(false);
   const [errorCharges, setErrorCharges] = useState('');
+  const [walletTokens, setWalletTokens] = useState<number>(0);
+  const [currency, setCurrency] = useState<string>('');
+  const [tokenValue, setTokenValue] = useState<number>(0);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+
 
   const dispatchAdminUpdatedEvent = () => {
     const event = new CustomEvent('adminUpdated');
@@ -87,6 +92,10 @@ export function SettingView() {
         setTransactionCharge(data?.transactionCharge);
         setInitialCommissionCharge(data?.commission);
         setInitialTransactionCharge(data?.transactionCharge);
+        setWalletTokens(data?.walletTokens ?? 0);
+        setCurrency(data?.currency ?? '');
+        setTokenValue(data?.tokenValue ?? 0);
+        setWalletBalance(data?.walletBalance ?? 0);
       } catch (error: any) {
         setErrorAdmin(
           error.response?.data?.message || error.message || 'Failed to load admin data'
@@ -220,6 +229,22 @@ export function SettingView() {
             Transaction charge applied on each withdrawal
           </Typography>
 
+          <Box sx={{ mt: -4, p: 1, borderRadius: 1 }}>
+            <Typography variant="subtitle2" color="text.secondary">
+              Wallet Tokens: <strong>{walletTokens}</strong>
+            </Typography>
+            <Typography variant="subtitle2" color="text.secondary">
+              Currency: <strong>{currency}</strong>
+            </Typography>
+            <Typography variant="subtitle2" color="text.secondary">
+              Token Value: <strong>{tokenValue}</strong>
+            </Typography>
+            <Typography variant="subtitle2" color="text.secondary">
+              Wallet Balance: <strong>{walletBalance}</strong>
+            </Typography>
+          </Box>
+
+
           <Button
             variant="contained"
             onClick={handleSaveCharges}
@@ -249,7 +274,7 @@ export function SettingView() {
             sx={{
               width: 400,
               p: 2,
-              mb: 4,  
+              mb: 4,
               borderRadius: 2,
               boxShadow: 2,
               backgroundColor: '#f9f9f9',
@@ -296,7 +321,7 @@ export function SettingView() {
                         setOriginalAdminEmail(adminEmail);
 
                         dispatchAdminUpdatedEvent();
-                        
+
                       } catch (error: any) {
                         alert(
                           error.response?.data?.message ||
