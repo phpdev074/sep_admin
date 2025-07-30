@@ -16,7 +16,7 @@ import {
 export const _myAccount = {
   displayName: 'SEP',
   email: 'sep@minimals.cc',
-  photoURL: '/assets/images/avatar/avatar-25.webp',
+  photoURL: '/assets/icons/glass/logo.png',
 };
 
 // ----------------------------------------------------------------------

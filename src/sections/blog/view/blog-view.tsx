@@ -60,6 +60,11 @@ export function SettingView() {
   const [savingCharges, setSavingCharges] = useState(false);
   const [errorCharges, setErrorCharges] = useState('');
 
+  const dispatchAdminUpdatedEvent = () => {
+    const event = new CustomEvent('adminUpdated');
+    window.dispatchEvent(event);
+  };
+
   // Fetch admin info on mount
   useEffect(() => {
     const fetchAdmin = async () => {
@@ -78,10 +83,10 @@ export function SettingView() {
         setAdminEmail(data.email || '');
         setOriginalAdminName(data.name || '');
         setOriginalAdminEmail(data.email || '');
-        setCommissionCharge(data?.commission );
-        setTransactionCharge(data?.transactionCharge );
-        setInitialCommissionCharge(data?.commission );
-        setInitialTransactionCharge(data?.transactionCharge );
+        setCommissionCharge(data?.commission);
+        setTransactionCharge(data?.transactionCharge);
+        setInitialCommissionCharge(data?.commission);
+        setInitialTransactionCharge(data?.transactionCharge);
       } catch (error: any) {
         setErrorAdmin(
           error.response?.data?.message || error.message || 'Failed to load admin data'
@@ -244,7 +249,7 @@ export function SettingView() {
             sx={{
               width: 400,
               p: 2,
-              mb: 4,
+              mb: 4,  
               borderRadius: 2,
               boxShadow: 2,
               backgroundColor: '#f9f9f9',
@@ -289,7 +294,9 @@ export function SettingView() {
                         );
                         setOriginalAdminName(adminName);
                         setOriginalAdminEmail(adminEmail);
-                        // alert('Admin info updated successfully!');
+
+                        dispatchAdminUpdatedEvent();
+                        
                       } catch (error: any) {
                         alert(
                           error.response?.data?.message ||

@@ -1,6 +1,7 @@
+/* eslint-disable */
 import type { IconButtonProps } from '@mui/material/IconButton';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -16,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRouter, usePathname } from 'src/routes/hooks';
 
 import { _myAccount } from 'src/_mock';
+import { api } from 'src/api/url';
 
 // ----------------------------------------------------------------------
 
@@ -35,6 +37,12 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   const pathname = usePathname();
 
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [adminName, setAdminName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [originalAdminName, setOriginalAdminName] = useState('');
+  const [originalAdminEmail, setOriginalAdminEmail] = useState('');
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
+  const [errorAdmin, setErrorAdmin] = useState('');
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -52,9 +60,54 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     [handleClosePopover, router]
   );
 
+  const fetchAdmin = async () => {
+    setLoadingAdmin(true);
+    setErrorAdmin('');
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No auth token found');
+
+      const response = await api.get('/admin/getAdmin', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = response.data?.data;
+      setAdminName(data.name || '');
+      setAdminEmail(data.email || '');
+      setOriginalAdminName(data.name || '');
+      setOriginalAdminEmail(data.email || '');
+    } catch (error: any) {
+      setErrorAdmin(
+        error.response?.data?.message || error.message || 'Failed to load admin data'
+      );
+    } finally {
+      setLoadingAdmin(false);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchAdmin();
+  }, []);
+
+  useEffect(() => {
+    const handleAdminUpdated = () => {
+      fetchAdmin();
+    };
+
+    // Listen for the custom event
+    window.addEventListener('adminUpdated', handleAdminUpdated);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('adminUpdated', handleAdminUpdated);
+    };
+  }, [fetchAdmin]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('_id'); 
     navigate('/');
   };
 
@@ -66,9 +119,9 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
           p: '2px',
           width: 40,
           height: 40,
-          background: (theme) =>
-            `conic-gradient(${theme.vars.palette.primary.light}, ${theme.vars.palette.warning.light}, ${theme.vars.palette.primary.light})`,
-          ...sx,
+          // background: (theme) =>
+          //   `conic-gradient(${theme.vars.palette.primary.light}, ${theme.vars.palette.warning.light}, ${theme.vars.palette.primary.light})`,
+          // ...sx,
         }}
         {...other}
       >
@@ -91,11 +144,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {_myAccount?.displayName}
+            {adminName || 'Loading...'}
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {_myAccount?.email}
+            {adminEmail || 'Loading...'}
           </Typography>
         </Box>
 
