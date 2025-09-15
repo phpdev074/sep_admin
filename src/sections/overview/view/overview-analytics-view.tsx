@@ -26,6 +26,7 @@ export function OverviewAnalyticsView() {
 
   const [activeUser, setActiveUser] = useState([])
   const [blockUser, setBlockUsers] = useState([])
+  const [deletedUser, setDeletedUsers] = useState([])
   const [monthlyUserData, setMonthlyUserData] = useState<number[]>([]);
 
 
@@ -49,6 +50,15 @@ export function OverviewAnalyticsView() {
     setBlockUsers(response?.data?.data?.totalBlockUsers)
 
   }
+
+  const fetchDeletedUsers = async () => {
+    const response = await api.get('/api/getAllDeletedUsersAdmin');
+    // return response.data;
+    setDeletedUsers(response?.data?.data)
+    console.log(response.data)
+
+  }
+
   const fetchPost = async () => {
     const response = await api.get('/admin/getAllPost');
 
@@ -84,6 +94,11 @@ export function OverviewAnalyticsView() {
   const { data: blockUsers, error: blockUsersError, isLoading: blockUsersLoading } = useQuery({
     queryKey: ['admin/getBlockUsers'],
     queryFn: fetchBlockUsers,
+    staleTime: 60000,
+  });
+  const { data: deletedUsers, error: deletedUsersError, isLoading: deletedUsersLoading } = useQuery({
+    queryKey: ['admin/getAllDeletedUsersAdmin'],
+    queryFn: fetchDeletedUsers,
     staleTime: 60000,
   });
   const { data: getAllPost, error: getAllPostError, isLoading: getAllPostLoading } = useQuery({
@@ -271,9 +286,8 @@ export function OverviewAnalyticsView() {
 
   const totalUsers = getAllUsers?.data?.length || 0
   const totalBlockedUsers = blockUser.length || 0
-  const totalActiveUsers = totalUsers - totalBlockedUsers || 0
+  const totalActiveUsers = (totalUsers ?? 0) - (totalBlockedUsers ?? 0) - (deletedUser?.length ?? 0);
   const totalPosts = getAllPost?.data?.total || 0
-  // console.log("totalPosts",totalPosts )
 
 
   // const activeUsers = users.filter((user) => user.active).length;
