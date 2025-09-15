@@ -122,7 +122,7 @@ export function OverviewAnalyticsView() {
     queryFn: fetchProduct,
     staleTime: 0,
   })
-  
+
   useEffect(() => {
     if (monthlyUsers) {
 
@@ -288,7 +288,7 @@ export function OverviewAnalyticsView() {
   const totalBlockedUsers = blockUser.length || 0
   const totalActiveUsers = (totalUsers ?? 0) - (totalBlockedUsers ?? 0) - (deletedUser?.length ?? 0);
   const totalPosts = getAllPost?.data?.total || 0
-
+  console.log(deletedUser,"deletedUser")
 
   // const activeUsers = users.filter((user) => user.active).length;
   // const blockedUsers = users.filter((user) => user.status === 'blocked').length;

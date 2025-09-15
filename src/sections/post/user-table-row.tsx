@@ -347,7 +347,7 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
             {row?.files?.[0]?.type === 'video' ? (
               <Box
                 component="video"
-                src={`${API_BASE_URL}${row.files?.[0]?.file}`}
+                src={`${API_BASE_URL}${row?.files?.[0]?.file}`}
                 controls
                 preload="metadata"
                 onError={(e) => {
@@ -433,8 +433,10 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
               },
               {
                 icon: 'mdi:eye-outline',
-                label: 'Watched Users',
-                value: row?.watchedUsers?.length ?? 0,
+                label: row?.fileType === 'poll' ? 'Voted Users' : 'Watched Users',
+                value: row?.fileType === 'poll'
+                  ? row?.votes?.length ?? 0
+                  : row?.watchedUsers?.length ?? 0,
               },
               {
                 icon: 'mdi:thumb-up-outline',
