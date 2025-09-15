@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -34,47 +34,65 @@ import type { UserProps } from '../user-table-row';
 export function UserView() {
   const [userData, setUserData] = useState<UserProps[]>([]);
   const [users, setUsers] = useState<UserProps[]>([]);
-  const fetchUsers = async () => {
-    const response = await api.get('/admin/getAllUsersAdmin'); 
-    
-    setUserData(response?.data?.data)
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    page: 0
+  });
+
+  const fetchUsers = async (limit: number, page: number) => {
+    setIsLoading(true);
+    const response = await api.get(`/admin/getAllUsersAdmin?limit=${limit}&page=${page + 1}`);
+
+    setUserData(response?.data?.data?.users)
+    setTotal(response?.data?.data?.pagination?.totalUsers)
     // return response.data;
+    setIsLoading(false);
   }
-    const { data: getAllUsers, error, isLoading } = useQuery({
-      queryKey: ['/admin/getAllUsers'],
-      queryFn: fetchUsers,  
-      // staleTime: 0, 
-    });
-    const table = useTable();
-    
-    const [filterName, setFilterName] = useState('');
-    if (isLoading) return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-      > 
-        <CircularProgress /> 
-      </Box>
-    );
-    const dataFiltered: UserProps[] = applyFilter({
-      
-      // inputData: _users,//-
-      inputData: userData,//+
-      
-      comparator: getComparator(table.order, table.orderBy),
-      filterName,
-    });
-    
-    const notFound = !dataFiltered.length && !!filterName;
 
-    const handleDelete = (userId: string) => {
-      setUserData(prevUsers => prevUsers.filter(user => user._id !== userId));
-    };
-    
+  useEffect(() => {
+    fetchUsers(pagination.limit, pagination.page);
 
-    
+  }, [pagination.limit, pagination.page]);
+
+  // const { data: getAllUsers, error, isLoading } = useQuery({
+  //   queryKey: ['/admin/getAllUsers'],
+  //   queryFn: fetchUsers,  
+  //   // staleTime: 0, 
+  // });
+
+  const table = useTable();
+
+  const [filterName, setFilterName] = useState('');
+  if (isLoading) return (
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      height="100vh"
+    >
+      <CircularProgress />
+    </Box>
+  );
+  const dataFiltered: UserProps[] = applyFilter({
+
+    // inputData: _users,//-
+    inputData: userData,//+
+
+    comparator: getComparator(table.order, table.orderBy),
+    filterName,
+  });
+
+  const notFound = !dataFiltered.length && !!filterName;
+
+  const handleDelete = (userId: string) => {
+    setUserData(prevUsers => prevUsers.filter(user => user._id !== userId));
+  };
+
+
+
 
   return (
     <DashboardContent>
@@ -82,7 +100,7 @@ export function UserView() {
         <Typography variant="h4" flexGrow={1}>
           Users
         </Typography>
-        
+
       </Box>
 
       <Card>
@@ -109,17 +127,13 @@ export function UserView() {
                   { id: '' },
                 ]}
               />
-              <TableBody>           
-            
-                {userData
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  ).map((row:any) => (
+              <TableBody>
+
+                {userData.map((row: any) => (
                     <UserTableRow
                       key={row._id}
                       row={row}
-                      
+
                       selected={table.selected.includes(row._id)}
                       onSelectRow={() => table.onSelectRow(row._id)}
                       onDelete={handleDelete}
@@ -139,13 +153,21 @@ export function UserView() {
 
         <TablePagination
           component="div"
-          page={table.page}
-          count={_users.length}
-          rowsPerPage={table.rowsPerPage}
-          onPageChange={table.onChangePage}
+          page={pagination.page}
+          count={total}
+          rowsPerPage={pagination.limit}
+          onPageChange={(event, newPage) => {
+            setPagination((prev) => ({ ...prev, page: newPage }));
+            table.setPage(newPage);
+          }}
           rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
+          onRowsPerPageChange={(event) => {
+            const newLimit = parseInt(event.target.value, 10);
+            setPagination({ page: 0, limit: newLimit });
+            table.setRowsPerPage?.(newLimit);
+          }}
         />
+
       </Card>
     </DashboardContent>
   );
@@ -216,5 +238,7 @@ export function useTable() {
     onChangePage,
     onSelectAllRows,
     onChangeRowsPerPage,
+    setRowsPerPage,
+    setPage
   };
 }
