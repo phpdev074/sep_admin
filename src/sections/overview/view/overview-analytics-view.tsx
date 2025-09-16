@@ -55,7 +55,6 @@ export function OverviewAnalyticsView() {
     const response = await api.get('/api/getAllDeletedUsersAdmin');
     // return response.data;
     setDeletedUsers(response?.data?.data)
-    console.log(response.data)
 
   }
 
@@ -288,7 +287,6 @@ export function OverviewAnalyticsView() {
   const totalBlockedUsers = blockUser.length || 0
   const totalActiveUsers = (totalUsers ?? 0) - (totalBlockedUsers ?? 0) - (deletedUser?.length ?? 0);
   const totalPosts = getAllPost?.data?.total || 0
-  console.log(deletedUser,"deletedUser")
 
   // const activeUsers = users.filter((user) => user.active).length;
   // const blockedUsers = users.filter((user) => user.status === 'blocked').length;
@@ -334,6 +332,20 @@ export function OverviewAnalyticsView() {
             title="Blocked Users"
             percent={2.8}
             total={totalBlockedUsers}
+            color="warning"
+            icon={<img alt="icon" src="/assets/icons/glass/ic-glass-buy.svg" />}
+            chart={{
+              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+              series: [40, 70, 50, 28, 70, 75, 7, 64],
+            }}
+          />
+        </Grid>
+
+        <Grid xs={12} sm={6} md={3}>
+          <AnalyticsWidgetSummary
+            title="Deleted Users"
+            percent={2.8}
+            total={deletedUser?.length}
             color="warning"
             icon={<img alt="icon" src="/assets/icons/glass/ic-glass-buy.svg" />}
             chart={{

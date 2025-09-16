@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 
-import { Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemAvatar, ListItemText } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import Popover from '@mui/material/Popover';
 import TableRow from '@mui/material/TableRow';
@@ -97,8 +97,8 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
   const [openEditModal, setOpenEditModal] = useState(false);
   const [editContent, setEditContent] = useState(row.content);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
   const [openImageModal, setOpenImageModal] = useState(false);
+  const [openVotedUsersModal, setOpenVotedUsersModal] = useState(false);
 
   const handleCloseEditModal = () => {
     handleClosePopover();
@@ -128,22 +128,20 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
     setSelectedImage(null);
   };
 
+  const handleOpenVotedUsersModal = () => {
+    console.log("Opening voted users modal...");
+    console.log("Row votes:", row?.votes);
+    console.log("File type:", row?.fileType);
+    setOpenVotedUsersModal(true);
+  };
+
+  const handleCloseVotedUsersModal = () => {
+    setOpenVotedUsersModal(false);
+  };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditContent(e.target.value);
 
-  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files ? e.target.files[0] : null;
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       setSelectedImage(reader.result as string); 
-  //     };
-  //     reader.readAsDataURL(file); 
-  //   }
-  // };
-
   const handleSubmitEdit = () => {
-
     console.log('Content:', editContent);
     console.log('Selected Image:', selectedImage);
     handleCloseEditModal();
@@ -157,8 +155,6 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
     setOpenPopover(null);
   }, []);
 
-
-
   const handleDelete = useCallback(async (id: string) => {
     const confirmed = window.confirm("Are you sure you want to delete the post");
     if (confirmed) {
@@ -167,165 +163,12 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
         onDeletePost(id);
       } catch (error) {
         console.error("Error deleting post:", error);
-
       }
     }
   }, [onDeletePost]);
 
-
-
   return (
     <>
-
-      {/* <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
-  <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
-    📝 Edit Post
-  </DialogTitle>
-
-  <DialogContent
-    dividers
-    sx={{
-      overflowY: 'auto',
-      maxHeight: '600px',
-      '&::-webkit-scrollbar': { display: 'none' },
-      scrollbarWidth: 'none',
-      px: 3,
-      py: 4,
-    }}
-  >
-    
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-      <input
-        type="file"
-        accept="image/*"
-        id="post-image-upload"
-        style={{ display: 'none' }}
-        onChange={handleImageChange}
-      />
-      <label htmlFor="post-image-upload" style={{ cursor: 'pointer' }}>
-        <Avatar
-          src={previewImage || `${API_BASE_URL}${row.files?.[0]?.file}`}
-          alt="Post Image"
-          variant="rounded"
-          sx={{
-            width: 160,
-            height: 160,
-            mb: 1,
-            border: '2px dashed #1976d2',
-            boxShadow: 2,
-            transition: '0.3s',
-            '&:hover': {
-              opacity: 0.8,
-            },
-          }}
-        />
-      </label>
-      <Typography variant="caption" color="text.secondary">
-        Click image to change
-      </Typography>
-    </Box>
-
-    
-    <TextField
-      label="Content"
-      multiline
-      rows={3}
-      value={editContent}
-      onChange={handleContentChange}
-      fullWidth
-      variant="outlined"
-      sx={{ mb: 3 }}
-    />
-
-    
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 2fr',
-        gap: 2,
-        backgroundColor: '#f5f5f5',
-        borderRadius: 2,
-        p: 3,
-        boxShadow: 1,
-      }}
-    >
-      {[
-        { icon: 'mdi:tag-outline', label: 'Category', value: row.categoryId.name },
-        { icon: 'mdi:earth', label: 'Country', value: row.country || 'N/A' },
-        // { icon: 'mdi:file-outline', label: 'File Type', value: row.fileType },
-        { icon: 'mdi:account', label: 'Name', value: row.userId.name || 'N/A' },
-        // { icon: 'mdi:video-outline', label: 'Video Count', value: row.videoCount ?? 0 },
-        // {
-        //   icon: 'mdi:map-marker',
-        //   label: 'Location',
-        //   value: `Lng: ${row.location?.coordinates?.[0] ?? 'N/A'}, Lat: ${row.location?.coordinates?.[1] ?? 'N/A'}`,
-        // },
-        row.startTime && {
-          icon: 'mdi:clock-start',
-          label: 'Start Time',
-          value: format(new Date(row.startTime), 'PPpp'),
-        },
-        row.endTime && {
-          icon: 'mdi:clock-end',
-          label: 'End Time',
-          value: format(new Date(row.endTime), 'PPpp'),
-        },
-        row.duration && {
-          icon: 'mdi:timer-outline',
-          label: 'Duration',
-          value: `${row.duration} seconds`,
-        },
-        {
-          icon: 'mdi:eye-outline',
-          label: 'Watched Users',
-          value: row.watchedUsers?.length ?? 0,
-        },
-        {
-          icon: 'mdi:thumb-up-outline',
-          label: 'Votes',
-          value: row.votes?.length ?? 0,
-        },
-        {
-          icon: 'mdi:calendar-plus',
-          label: 'Created At',
-          value: format(new Date(row.createdAt), 'PP'),
-        },
-        // {
-        //   icon: 'mdi:calendar-edit',
-        //   label: 'Updated At',
-        //   value: format(new Date(row.updatedAt), 'PP'),
-        // },
-      ]
-      .filter((field): field is { icon: string; label: string; value: any } => Boolean(field))  
-        .map((field, idx) => (
-          <Box key={idx} display="flex" alignItems="center" gap={1}>
-            <Iconify icon={field.icon} width={20} color="text.secondary" />
-            <Typography variant="subtitle2" color="text.secondary">
-              {field.label}:
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ gridColumn: 'span 2' }}>
-              {field.value}
-            </Typography>
-          </Box>
-        ))}
-    </Box>
-  </DialogContent>
-
-  <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-    <Button onClick={handleCloseEditModal} color="primary" variant="outlined">
-      Cancel
-    </Button>
-    <Button
-      variant="contained"
-      color="success"
-      onClick={handleSubmitEdit}
-      disabled={editContent === row.content && !newImageFile}
-    >
-      Save
-    </Button>
-  </DialogActions>
-</Dialog> */}
-
       <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
           👁️ View Post
@@ -412,60 +255,154 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
               boxShadow: 1,
             }}
           >
-            {[
-              { icon: 'mdi:tag-outline', label: 'Category', value: row?.categoryId?.name || row?.categoryId },
-              { icon: 'mdi:earth', label: 'Country', value: row?.country && row?.country.trim() !== '' ? row?.country : 'N/A' },
-              { icon: 'mdi:account', label: 'Name', value: row?.userId?.name || 'N/A' },
-              row.startTime && {
-                icon: 'mdi:clock-start',
-                label: 'Start Time',
-                value: format(new Date(row?.startTime), 'PPpp'),
-              },
-              row.endTime && {
-                icon: 'mdi:clock-end',
-                label: 'End Time',
-                value: format(new Date(row?.endTime), 'PPpp'),
-              },
-              row.duration && {
-                icon: 'mdi:timer-outline',
-                label: 'Duration',
-                value: `${row?.duration} seconds`,
-              },
-              {
-                icon: 'mdi:eye-outline',
-                label: row?.fileType === 'poll' ? 'Voted Users' : 'Watched Users',
-                value: row?.fileType === 'poll'
-                  ? row?.votes?.length ?? 0
-                  : row?.watchedUsers?.length ?? 0,
-              },
-              {
-                icon: 'mdi:thumb-up-outline',
-                label: 'Votes',
-                value: row?.votes?.length ?? 0,
-              },
-              {
-                icon: 'mdi:calendar-plus',
-                label: 'Created At',
-                value: format(new Date(row?.createdAt), 'PP'),
-              },
-            ]
-              .filter((field): field is { icon: string; label: string; value: any } => Boolean(field))
-              .map((field, idx) => (
+            {(() => {
+              const fields = [
+                { icon: 'mdi:tag-outline', label: 'Category', value: (typeof row?.categoryId === 'object' ? row?.categoryId?.name : row?.categoryId) || 'N/A', isClickable: false, onClick: undefined },
+                { icon: 'mdi:earth', label: 'Country', value: row?.country && row?.country.trim() !== '' ? row?.country : 'N/A', isClickable: false, onClick: undefined },
+                { icon: 'mdi:account', label: 'Name', value: row?.userId?.name || 'N/A', isClickable: false, onClick: undefined },
+                ...(row.startTime ? [{
+                  icon: 'mdi:clock-start',
+                  label: 'Start Time',
+                  value: format(new Date(row?.startTime), 'PPpp'),
+                  isClickable: false,
+                  onClick: undefined
+                }] : []),
+                ...(row.endTime ? [{
+                  icon: 'mdi:clock-end',
+                  label: 'End Time',
+                  value: format(new Date(row?.endTime), 'PPpp'),
+                  isClickable: false,
+                  onClick: undefined
+                }] : []),
+                ...(row.duration ? [{
+                  icon: 'mdi:timer-outline',
+                  label: 'Duration',
+                  value: `${row?.duration} seconds`,
+                  isClickable: false,
+                  onClick: undefined
+                }] : []),
+                {
+                  icon: 'mdi:eye-outline',
+                  label: row?.fileType === 'poll' ? 'Voted Users' : 'Watched Users',
+                  value: row?.fileType === 'poll'
+                    ? row?.votes?.length ?? 0
+                    : row?.watchedUsers?.length ?? 0,
+                  isClickable: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0,
+                  onClick: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0 ? handleOpenVotedUsersModal : undefined,
+                },
+                // {
+                //   icon: 'mdi:thumb-up-outline',
+                //   label: 'Votes',
+                //   value: row?.votes?.length ?? 0,
+                //   isClickable: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0,
+                //   onClick: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0 ? handleOpenVotedUsersModal : undefined,
+                // },
+                {
+                  icon: 'mdi:calendar-plus',
+                  label: 'Created At',
+                  value: format(new Date(row?.createdAt), 'PP'),
+                  isClickable: false,
+                  onClick: undefined
+                },
+              ];
+
+              return fields.map((field, idx) => (
                 <Box key={idx} display="flex" alignItems="center" gap={1}>
-                  <Iconify icon={field?.icon} width={20} color="text.secondary" />
+                  <Iconify icon={field.icon} width={20} color="text.secondary" />
                   <Typography variant="subtitle2" color="text.secondary">
-                    {field?.label}:
+                    {field.label}:
                   </Typography>
-                  <Typography variant="body2" color="text.primary" sx={{ gridColumn: 'span 2' }}>
-                    {field?.value}
+                  <Typography
+                    variant="body2"
+                    color={field.isClickable ? 'primary.main' : 'text.primary'}
+                    sx={{
+                      gridColumn: 'span 2',
+                      cursor: field.isClickable ? 'pointer' : 'default',
+                      textDecoration: field.isClickable ? 'underline' : 'none',
+                      '&:hover': field.isClickable ? {
+                        color: 'primary.dark'
+                      } : {}
+                    }}
+                    onClick={field.onClick || undefined}
+                  >
+                    {String(field.value)}
                   </Typography>
                 </Box>
-              ))}
+              ));
+            })()}
           </Box>
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
           <Button onClick={handleCloseEditModal} color="primary" variant="outlined">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Voted Users Modal */}
+      <Dialog
+        open={openVotedUsersModal}
+        onClose={handleCloseVotedUsersModal}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
+          👥 Voted Users ({row?.votes?.length ?? 0})
+        </DialogTitle>
+
+        <DialogContent dividers sx={{ p: 0 }}>
+          {row?.votes?.length > 0 ? (
+            <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+              {row?.votes?.map((vote: any, index: number) => (
+                <ListItem
+                  key={vote._id || index}
+                  sx={{
+                    borderBottom: index < row.votes.length - 1 ? '1px solid #f0f0f0' : 'none',
+                    py: 2
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar
+                      src={vote?.userId?.image ? `${API_BASE_URL}${vote.userId.image}` : undefined}
+                      sx={{ width: 50, height: 50 }}
+                    >
+                      {vote?.userId?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        {vote?.userId?.name || 'Unknown User'}
+                      </Typography>
+                    }
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {vote?.userId?.email || 'No email'}
+                        </Typography>
+                        {vote?.option && (
+                          <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                            Voted for: {vote.option.name}
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="h6" color="text.secondary">
+                No votes yet
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button onClick={handleCloseVotedUsersModal} color="primary" variant="outlined">
             Close
           </Button>
         </DialogActions>
@@ -517,7 +454,6 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
         </TableCell>
       </TableRow>
 
-
       <Popover
         open={!!openPopover}
         anchorEl={openPopover}
@@ -542,16 +478,15 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
           }}
         >
           <MenuItem onClick={handleOpenEditModal}>
-
             View Details
           </MenuItem>
 
           <MenuItem onClick={() => handleDelete(row?._id)} sx={{ color: 'error.main' }}>
-            {/* <Iconify icon="solar:trash-bin-trash-bold" /> */}
             Delete
           </MenuItem>
         </MenuList>
       </Popover>
+
       <Dialog open={openImageModal} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
         <DialogContent sx={{ p: 0, bgcolor: 'black' }}>
           <img
