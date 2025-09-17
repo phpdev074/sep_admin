@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -62,20 +62,31 @@ interface Post {
 export function PostView() {
   const [userData, setUserData] = useState<Post[]>([]);
   const [total, setTotal] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchUsers = async () => {
-    const response = await api.get('/admin/getAllPost'); 
+  const [pagination, setPagination] = useState({
+      limit: 10,
+      page: 0
+    });
+
+  const fetchUsers = async (limit: number, page: number) => {
+    const response = await api.get(`/admin/getAllPost?limit=${limit}&page=${page + 1}`); 
     
     setUserData(response?.data?.data?.response)
     setTotal(response?.data?.data?.total)
-
     // return response.data;
   }
-    const { data: getAllPost, error, isLoading } = useQuery({
-      queryKey: ['/admin/getAllPost'],
-      queryFn: fetchUsers,  
-      // staleTime: 0, 
-    });
+
+   useEffect(() => {
+      fetchUsers(pagination.limit, pagination.page);
+  
+    }, [pagination.limit, pagination.page]);
+
+    // const { data: getAllPost, error, isLoading } = useQuery({
+    //   queryKey: ['/admin/getAllPost'],
+    //   queryFn: fetchUsers,  
+    //   // staleTime: 0, 
+    // });
 
   const table = useTable();
     
@@ -165,12 +176,19 @@ export function PostView() {
 
         <TablePagination
           component="div"
-          page={table.page}
+          page={pagination.page}
           count={total}
-          rowsPerPage={table.rowsPerPage}
-          onPageChange={table.onChangePage}
+          rowsPerPage={pagination.limit}
+          onPageChange={(event, newPage) => {
+            setPagination((prev) => ({ ...prev, page: newPage }));
+            table.setPage(newPage);
+          }}
           rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
+          onRowsPerPageChange={(event) => {
+            const newLimit = parseInt(event.target.value, 10);
+            setPagination({ page: 0, limit: newLimit });
+            table.setRowsPerPage?.(newLimit);
+          }}
         />
       </Card>
     </DashboardContent>
@@ -242,5 +260,7 @@ export function useTable() {
     onChangePage,
     onSelectAllRows,
     onChangeRowsPerPage,
+    setPage,
+    setRowsPerPage,
   };
 }

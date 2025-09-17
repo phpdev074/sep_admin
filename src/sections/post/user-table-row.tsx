@@ -284,8 +284,8 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
                 {
                   icon: 'mdi:eye-outline',
                   label: row?.fileType === 'poll' ? 'Voted Users' : 'Watched Users',
-                  value: row?.fileType === 'poll'
-                    ? row?.votes?.length ?? 0
+                   value: row?.fileType === 'poll'
+                    ?  row?.votes?.length ?? 0
                     : row?.watchedUsers?.length ?? 0,
                   isClickable: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0,
                   onClick: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0 ? handleOpenVotedUsersModal : undefined,
