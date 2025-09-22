@@ -65,31 +65,31 @@ export function PostView() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [pagination, setPagination] = useState({
-      limit: 10,
-      page: 0
-    });
+    limit: 10,
+    page: 0
+  });
 
   const fetchUsers = async (limit: number, page: number) => {
-    const response = await api.get(`/admin/getAllPost?limit=${limit}&page=${page + 1}`); 
-    
+    const response = await api.get(`/admin/getAllPost?limit=${limit}&page=${page + 1}`);
+
     setUserData(response?.data?.data?.response)
     setTotal(response?.data?.data?.total)
     // return response.data;
   }
 
-   useEffect(() => {
-      fetchUsers(pagination.limit, pagination.page);
-  
-    }, [pagination.limit, pagination.page]);
+  useEffect(() => {
+    fetchUsers(pagination.limit, pagination.page);
 
-    // const { data: getAllPost, error, isLoading } = useQuery({
-    //   queryKey: ['/admin/getAllPost'],
-    //   queryFn: fetchUsers,  
-    //   // staleTime: 0, 
-    // });
+  }, [pagination.limit, pagination.page]);
+
+  // const { data: getAllPost, error, isLoading } = useQuery({
+  //   queryKey: ['/admin/getAllPost'],
+  //   queryFn: fetchUsers,  
+  //   // staleTime: 0, 
+  // });
 
   const table = useTable();
-    
+
   const [filterName, setFilterName] = useState('');
   if (isLoading) return (
     <Box
@@ -98,7 +98,7 @@ export function PostView() {
       alignItems="center"
       height="100vh"
     >
-      <CircularProgress /> 
+      <CircularProgress />
     </Box>
   );
   const dataFiltered: UserProps[] = applyFilter({
@@ -120,10 +120,10 @@ export function PostView() {
 
   return (
     <DashboardContent>
-      
+
 
       <Card>
-        
+
 
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
@@ -153,7 +153,7 @@ export function PostView() {
               />
               <TableBody>
                 {userData
-                  .map((row:any) => (
+                  .map((row: any) => (
                     <UserTableRow
                       key={row?._id}
                       row={row}

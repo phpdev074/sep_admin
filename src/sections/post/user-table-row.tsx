@@ -256,6 +256,9 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
             }}
           >
             {(() => {
+              // Check if any file is an image
+              const hasImageFile = row?.files?.some(file => file.type === 'image');
+              
               const fields = [
                 { icon: 'mdi:tag-outline', label: 'Category', value: (typeof row?.categoryId === 'object' ? row?.categoryId?.name : row?.categoryId) || 'N/A', isClickable: false, onClick: undefined },
                 { icon: 'mdi:earth', label: 'Country', value: row?.country && row?.country.trim() !== '' ? row?.country : 'N/A', isClickable: false, onClick: undefined },
@@ -281,15 +284,16 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
                   isClickable: false,
                   onClick: undefined
                 }] : []),
-                {
+                // Only include eye icon field if there are no image files
+                ...(!hasImageFile ? [{
                   icon: 'mdi:eye-outline',
-                  label: row?.fileType === 'poll' ? 'Voted Users' : 'Watched Users',
+                  label: row?.fileType === 'poll' ? 'Voted Users' : 'Video Count',
                    value: row?.fileType === 'poll'
                     ?  row?.votes?.length ?? 0
-                    : row?.watchedUsers?.length ?? 0,
+                    : row?.videoCount ?? 0,
                   isClickable: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0,
                   onClick: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0 ? handleOpenVotedUsersModal : undefined,
-                },
+                }] : []),
                 // {
                 //   icon: 'mdi:thumb-up-outline',
                 //   label: 'Votes',
