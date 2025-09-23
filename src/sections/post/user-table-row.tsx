@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 
-import { Box, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemAvatar, ListItemText } from '@mui/material';
+import { Box, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemAvatar, ListItemText, Chip } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import Popover from '@mui/material/Popover';
 import TableRow from '@mui/material/TableRow';
@@ -21,6 +21,7 @@ import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { format } from 'date-fns';
 import { api, API_BASE_URL } from '../../api/url'
+import React from 'react';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ interface File {
 }
 
 interface Post {
+  voteUsers: any;
   _id: string;
   // userId: string;
   // categoryId: string;
@@ -169,7 +171,7 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
 
   return (
     <>
-      <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="md">
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
           👁️ View Post
         </DialogTitle>
@@ -258,7 +260,7 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
             {(() => {
               // Check if any file is an image
               const hasImageFile = row?.files?.some(file => file.type === 'image');
-              
+
               const fields = [
                 { icon: 'mdi:tag-outline', label: 'Category', value: (typeof row?.categoryId === 'object' ? row?.categoryId?.name : row?.categoryId) || 'N/A', isClickable: false, onClick: undefined },
                 { icon: 'mdi:earth', label: 'Country', value: row?.country && row?.country.trim() !== '' ? row?.country : 'N/A', isClickable: false, onClick: undefined },
@@ -288,11 +290,44 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
                 ...(!hasImageFile ? [{
                   icon: 'mdi:eye-outline',
                   label: row?.fileType === 'poll' ? 'Voted Users' : 'Video Count',
-                   value: row?.fileType === 'poll'
-                    ?  row?.votes?.length ?? 0
+                  value: row?.fileType === 'poll'
+                    ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" color="text.primary">
+                          {/* Debug: Log the actual votes data */}
+                          {(() => {
+                            console.log('Votes data:', row?.votes);
+                            console.log('Votes length:', row?.votes?.length);
+                            console.log('Votes type:', typeof row?.votes);
+                            return row?.votes?.length ?? 0;
+                          })()}
+                        </Typography>
+                        {(row?.votes?.length ?? 0) > 0 && (
+                          <Chip
+                            label="View List"
+                            size="small"
+                            variant="outlined"
+                            clickable
+                            onClick={handleOpenVotedUsersModal}
+                            sx={{
+                              fontSize: '0.7rem',
+                              height: '20px',
+                              borderRadius: '10px',
+                              backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                              borderColor: '#1976d2',
+                              color: '#1976d2',
+                              '&:hover': {
+                                backgroundColor: 'rgba(25, 118, 210, 0.12)',
+                                borderColor: '#1565c0',
+                              }
+                            }}
+                          />
+                        )}
+                      </Box>
+                    )
                     : row?.videoCount ?? 0,
-                  isClickable: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0,
-                  onClick: row?.fileType === 'poll' && (row?.votes?.length ?? 0) > 0 ? handleOpenVotedUsersModal : undefined,
+                  isClickable: false,
+                  onClick: undefined,
                 }] : []),
                 // {
                 //   icon: 'mdi:thumb-up-outline',
@@ -316,21 +351,32 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
                   <Typography variant="subtitle2" color="text.secondary">
                     {field.label}:
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    color={field.isClickable ? 'primary.main' : 'text.primary'}
+                  <Box
                     sx={{
                       gridColumn: 'span 2',
-                      cursor: field.isClickable ? 'pointer' : 'default',
-                      textDecoration: field.isClickable ? 'underline' : 'none',
-                      '&:hover': field.isClickable ? {
-                        color: 'primary.dark'
-                      } : {}
+                      display: 'flex',
+                      alignItems: 'center'
                     }}
-                    onClick={field.onClick || undefined}
                   >
-                    {String(field.value)}
-                  </Typography>
+                    {React.isValidElement(field.value) ? (
+                      field.value
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        color={field.isClickable ? 'primary.main' : 'text.primary'}
+                        sx={{
+                          cursor: field.isClickable ? 'pointer' : 'default',
+                          textDecoration: field.isClickable ? 'underline' : 'none',
+                          '&:hover': field.isClickable ? {
+                            color: 'primary.dark'
+                          } : {}
+                        }}
+                        onClick={field.onClick || undefined}
+                      >
+                        {String(field.value)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
               ));
             })()}
@@ -345,6 +391,7 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
       </Dialog>
 
       {/* Voted Users Modal */}
+
       <Dialog
         open={openVotedUsersModal}
         onClose={handleCloseVotedUsersModal}
@@ -352,13 +399,13 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
         maxWidth="sm"
       >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1.5rem' }}>
-          👥 Voted Users ({row?.votes?.length ?? 0})
+          👥 Voted Users ({row?.voteUsers?.length ?? 0})
         </DialogTitle>
 
         <DialogContent dividers sx={{ p: 0 }}>
           {row?.votes?.length > 0 ? (
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-              {row?.votes?.map((vote: any, index: number) => (
+              {row?.voteUsers?.map((vote: any, index: number) => (
                 <ListItem
                   key={vote._id || index}
                   sx={{
@@ -368,26 +415,26 @@ export function UserTableRow({ row, selected, onSelectRow, onDeletePost }: UserT
                 >
                   <ListItemAvatar>
                     <Avatar
-                      src={vote?.userId?.image ? `${API_BASE_URL}${vote.userId.image}` : undefined}
+                      src={vote?.image ? `${API_BASE_URL}${vote.image}` : undefined}
                       sx={{ width: 50, height: 50 }}
                     >
-                      {vote?.userId?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {vote?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
                     primary={
                       <Typography variant="subtitle1" fontWeight="bold">
-                        {vote?.userId?.name || 'Unknown User'}
+                        {vote?.name || 'Unknown User'}
                       </Typography>
                     }
                     secondary={
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          {vote?.userId?.email || 'No email'}
+                          {vote?.email || 'No email'}
                         </Typography>
                         {vote?.option && (
                           <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                            Voted for: {vote.option.name}
+                            {/* Voted for: {row?.votes?.option.name} */}
                           </Typography>
                         )}
                       </Box>
